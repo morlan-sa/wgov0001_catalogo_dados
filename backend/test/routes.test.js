@@ -23,6 +23,56 @@ test('GET /api/schemas retorna lista de schemas com camada', async () => {
   }
 });
 
+test('GET /api/catalog/schemas retorna lista de schemas sem filtro', async () => {
+  const app = createApp();
+  const server = await listen(app);
+  const { port } = server.address();
+  try {
+    const res = await fetch(`http://localhost:${port}/api/catalog/schemas`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.ok(Array.isArray(body));
+    assert.ok(body.some((s) => s.schema === 'CUR_COM'));
+    assert.ok(body.length > 1);
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /api/catalog/schemas?filter=CUR_COM retorna somente o schema filtrado', async () => {
+  const app = createApp();
+  const server = await listen(app);
+  const { port } = server.address();
+  try {
+    const res = await fetch(`http://localhost:${port}/api/catalog/schemas?filter=CUR_COM`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.ok(Array.isArray(body));
+    assert.ok(body.length > 0);
+    assert.ok(body.every((s) => s.schema === 'CUR_COM'));
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /api/catalog/schemas/:schema/tables/:table retorna 500 quando o repositório rejeita (erro real do DB2)', async () => {
+  const app = createApp();
+  const server = await listen(app);
+  const { port } = server.address();
+  try {
+    // Um valor de schema absurdamente longo faz o DB2 rejeitar o bind param
+    // com "String data right truncation" (SQLSTATE 22001) - um erro real,
+    // não mockado, que exercita o middleware de erro (500 + { error }).
+    const longSchema = 'A'.repeat(500);
+    const res = await fetch(`http://localhost:${port}/api/catalog/schemas/${longSchema}/tables/X`);
+    assert.equal(res.status, 500);
+    const body = await res.json();
+    assert.ok(typeof body.error === 'string' && body.error.length > 0);
+  } finally {
+    server.close();
+  }
+});
+
 test('GET /api/catalog/schemas/:schema/tables retorna tabelas do schema', async () => {
   const app = createApp();
   const server = await listen(app);
