@@ -28,6 +28,17 @@ function closeConnection(conn) {
 }
 
 export async function query(sql, params = []) {
+  // Defensive guard: reject non-SELECT/WITH statements before opening connection
+  const trimmedSql = sql.trim();
+  const upperSql = trimmedSql.toUpperCase();
+
+  if (!upperSql.startsWith('SELECT') && !upperSql.startsWith('WITH')) {
+    const firstWords = trimmedSql.split(/\s+/).slice(0, 3).join(' ');
+    throw new Error(
+      `Somente consultas SELECT são permitidas (query bloqueada por segurança de leitura): ${firstWords}`
+    );
+  }
+
   const conn = await openConnection();
   try {
     const rows = await new Promise((resolve, reject) => {
