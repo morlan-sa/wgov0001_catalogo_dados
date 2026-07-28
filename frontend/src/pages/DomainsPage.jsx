@@ -20,30 +20,27 @@ export default function DomainsPage() {
       <p className="text-sm text-slate-500 mb-4">
         Catálogo corporativo de domínios de negócio, com quantos schemas e objetos do DB2 já usam cada um
       </p>
-      <table className="w-full text-sm border border-slate-200 rounded-lg overflow-hidden">
-        <thead className="bg-slate-50 text-slate-500 text-left">
-          <tr>
-            <th className="px-3 py-2">Código</th>
-            <th className="px-3 py-2">Domínio</th>
-            <th className="px-3 py-2">Schemas no DB2</th>
-            <th className="px-3 py-2">Tabelas/Views</th>
-          </tr>
-        </thead>
-        <tbody>
-          {domains.map((d) => (
-            <tr key={d.code} className="border-t border-slate-100">
-              <td className="px-3 py-2 font-mono text-xs text-indigo-700">{d.code}</td>
-              <td className="px-3 py-2 font-medium text-slate-800">{d.name}</td>
-              <td className={`px-3 py-2 ${d.schemaCount === 0 ? 'text-slate-300' : 'text-slate-600'}`}>
-                {d.schemaCount}
-              </td>
-              <td className={`px-3 py-2 ${d.objectCount === 0 ? 'text-slate-300' : 'text-slate-600'}`}>
-                {d.objectCount}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {domains.map((d) => {
+          const emUso = d.schemaCount > 0;
+          return (
+            <div
+              key={d.code}
+              className={`border rounded-xl p-3 shadow-sm transition-shadow ${
+                emUso ? 'border-slate-200 hover:shadow-md' : 'border-slate-100'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className={`font-semibold ${emUso ? 'text-indigo-700' : 'text-slate-400'}`}>{d.name}</div>
+                <span className="font-mono text-xs text-slate-400">{d.code}</span>
+              </div>
+              <div className={`text-sm ${emUso ? 'text-slate-500' : 'text-slate-300'}`}>
+                {d.schemaCount} schema(s) · {d.objectCount} tabela(s)/view(s)
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
