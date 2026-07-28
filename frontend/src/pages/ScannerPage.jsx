@@ -59,21 +59,21 @@ export default function ScannerPage() {
           <p className="text-sm text-slate-500 mb-2">Passo 1 de 2 — Escolha o grupo</p>
           <button
             onClick={() => chooseShortcut('governadas')}
-            className="w-full text-left border border-slate-200 rounded-lg p-3 hover:border-blue-400"
+            className="w-full text-left border border-slate-200 rounded-xl p-3 hover:border-indigo-400"
           >
-            <div className="font-semibold text-blue-700">Schemas governados</div>
+            <div className="font-semibold text-indigo-700">Schemas governados</div>
             <div className="text-sm text-slate-500">STG_ / CUR_ / RPT_</div>
           </button>
           <button
             onClick={() => chooseShortcut('todas')}
-            className="w-full text-left border border-slate-200 rounded-lg p-3 hover:border-blue-400"
+            className="w-full text-left border border-slate-200 rounded-xl p-3 hover:border-indigo-400"
           >
             <div className="font-semibold">Todos os schemas</div>
             <div className="text-sm text-slate-500">{schemas.length} schemas</div>
           </button>
           <button
             onClick={() => chooseShortcut('manual')}
-            className="w-full text-left border border-slate-200 rounded-lg p-3 hover:border-blue-400"
+            className="w-full text-left border border-slate-200 rounded-xl p-3 hover:border-indigo-400"
           >
             <div className="font-semibold">Escolher manualmente</div>
             <div className="text-sm text-slate-500">Selecionar schema a schema</div>
@@ -91,7 +91,7 @@ export default function ScannerPage() {
             placeholder="Filtrar schema"
             className="w-full border border-slate-200 rounded-md px-3 py-1.5 text-sm mb-2"
           />
-          <div className="border border-slate-200 rounded-lg p-2 max-h-72 overflow-y-auto space-y-1">
+          <div className="border border-slate-200 rounded-xl p-2 max-h-72 overflow-y-auto space-y-1">
             {visibleSchemas.map((s) => (
               <label key={s.schema} className="flex items-center gap-2 px-2 py-1 text-sm">
                 <input type="checkbox" checked={selected.has(s.schema)} onChange={() => toggle(s.schema)} />
@@ -107,7 +107,7 @@ export default function ScannerPage() {
             <button
               onClick={runQuery}
               disabled={selected.size === 0}
-              className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md disabled:opacity-40"
+              className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg disabled:opacity-40 hover:bg-indigo-700 transition-colors"
             >
               Consultar ({selected.size} schemas)
             </button>

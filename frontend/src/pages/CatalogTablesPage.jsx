@@ -24,7 +24,7 @@ export default function CatalogTablesPage() {
           <Link
             key={t.name}
             to={`/catalogo/${schema}/${t.name}`}
-            className="flex items-center justify-between border border-slate-200 rounded-lg p-3 shadow-sm hover:border-blue-400 hover:shadow-md transition-shadow"
+            className="flex items-center justify-between border border-slate-200 rounded-xl p-3 shadow-sm hover:border-indigo-400 hover:shadow-md transition-shadow"
           >
             <div>
               <div className="font-medium text-slate-800">{t.name}</div>

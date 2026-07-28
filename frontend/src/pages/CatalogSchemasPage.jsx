@@ -37,9 +37,9 @@ export default function CatalogSchemasPage() {
           <Link
             key={s.schema}
             to={`/catalogo/${s.schema}`}
-            className="border border-slate-200 rounded-lg p-3 shadow-sm hover:border-blue-400 hover:shadow-md transition-shadow"
+            className="border border-slate-200 rounded-xl p-3 shadow-sm hover:border-indigo-400 hover:shadow-md transition-shadow"
           >
-            <div className="font-semibold text-blue-700">{s.schema}</div>
+            <div className="font-semibold text-indigo-700">{s.schema}</div>
             <div className="text-sm text-slate-500">
               {s.tableCount} tabelas · {s.camada} · {s.dominio.name}
             </div>

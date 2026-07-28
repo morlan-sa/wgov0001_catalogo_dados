@@ -3,6 +3,8 @@ import { Database, Table2, Layers } from 'lucide-react';
 import StatCard from '../components/StatCard.jsx';
 import { getDashboardSummary } from '../api/client.js';
 
+const CAMADA_TONE_CYCLE = ['purple', 'green', 'amber', 'sky'];
+
 export default function DashboardPage() {
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState(null);
@@ -19,13 +21,19 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-bold text-slate-800">Dashboard de Governança</h1>
       <p className="text-sm text-slate-500 mb-6">Visão geral do catálogo de dados do DB2</p>
       <div className="flex gap-4 mb-6 flex-wrap">
-        <StatCard label="Schemas no DB2" value={summary.totalSchemas} icon={Database} />
-        <StatCard label="Tabelas/Views" value={summary.totalTables} icon={Table2} />
+        <StatCard label="Schemas no DB2" value={summary.totalSchemas} icon={Database} tone="indigo" />
+        <StatCard label="Tabelas/Views" value={summary.totalTables} icon={Table2} tone="sky" />
       </div>
       <h2 className="text-sm font-semibold text-slate-600 mb-2">Tabelas por camada</h2>
       <div className="flex gap-4 flex-wrap">
-        {Object.entries(summary.porCamada).map(([camada, count]) => (
-          <StatCard key={camada} label={camada} value={count} icon={Layers} />
+        {Object.entries(summary.porCamada).map(([camada, count], index) => (
+          <StatCard
+            key={camada}
+            label={camada}
+            value={count}
+            icon={Layers}
+            tone={CAMADA_TONE_CYCLE[index % CAMADA_TONE_CYCLE.length]}
+          />
         ))}
       </div>
     </div>
