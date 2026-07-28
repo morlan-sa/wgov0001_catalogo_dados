@@ -9,6 +9,11 @@ test('listColumns retorna colunas de CUR_REF.PAIS com ID_PAIS marcado como chave
   const idPais = columns.find((c) => c.name === 'ID_PAIS');
   assert.ok(idPais, 'deveria existir a coluna ID_PAIS');
   assert.equal(idPais.isPrimaryKey, true);
+  assert.equal(idPais.domain, 'Identificador');
+
+  const cdPais = columns.find((c) => c.name === 'CD_PAIS');
+  assert.ok(cdPais, 'deveria existir a coluna CD_PAIS');
+  assert.equal(cdPais.domain, 'Código');
 
   const orders = columns.map((c) => c.order);
   assert.deepEqual(orders, [...orders].sort((a, b) => a - b), 'colunas devem vir ordenadas por COLNO');
