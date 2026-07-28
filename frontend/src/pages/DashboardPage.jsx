@@ -28,8 +28,8 @@ export default function DashboardPage() {
       <p className="text-sm text-slate-500 mb-6">Visão geral do catálogo de dados do DB2</p>
       <div className="flex gap-4 mb-6 flex-wrap">
         <StatCard label="Schemas no DB2" value={summary.totalSchemas} icon={Database} tone="indigo" to="/catalogo" />
-        <StatCard label="Tabelas" value={summary.totalTables} icon={Table2} tone="sky" to="/catalogo" />
-        <StatCard label="Views" value={summary.totalViews} icon={Eye} tone="purple" to="/catalogo" />
+        <StatCard label="Tabelas" value={summary.totalTables} icon={Table2} tone="sky" to="/catalogo?tipo=T" />
+        <StatCard label="Views" value={summary.totalViews} icon={Eye} tone="purple" to="/catalogo?tipo=V" />
       </div>
       <h2 className="text-sm font-semibold text-slate-600 mb-2">Tabelas por camada</h2>
       <div className="flex gap-4 flex-wrap">

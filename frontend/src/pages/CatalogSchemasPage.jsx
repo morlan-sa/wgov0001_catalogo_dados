@@ -14,6 +14,8 @@ export default function CatalogSchemasPage() {
 
   const filterParam = searchParams.get('filter');
   const filter = filterParam ? filterParam.split(',').filter(Boolean) : null;
+  const tipo = searchParams.get('tipo'); // 'T' | 'V' | null (ambos)
+  const tipoQuery = tipo ? `?tipo=${tipo}` : '';
 
   useEffect(() => {
     getCatalogSchemas(filter).then(setSchemas).catch((err) => setError(err.message));
@@ -39,14 +41,26 @@ export default function CatalogSchemasPage() {
 
   if (error) return <p className="text-red-600">Erro ao carregar catálogo: {error}</p>;
 
-  const visible = schemas.filter((s) => s.schema.toLowerCase().includes(search.toLowerCase()));
+  const visible = schemas
+    .filter((s) => s.schema.toLowerCase().includes(search.toLowerCase()))
+    .filter((s) => {
+      if (tipo === 'T') return s.tableCount > 0;
+      if (tipo === 'V') return s.viewCount > 0;
+      return true;
+    });
   const isSearchingColumns = columnSearch.trim().length > 0;
+  const subtitle =
+    tipo === 'T'
+      ? 'Schemas com tabelas catalogadas a partir do DB2'
+      : tipo === 'V'
+        ? 'Schemas com views catalogadas a partir do DB2'
+        : 'Schemas e tabelas catalogados a partir do DB2';
 
   return (
     <div>
       <Breadcrumb items={[{ label: 'Catálogo' }]} />
       <h1 className="text-2xl font-bold text-slate-800 mb-1">Catálogo de Dados</h1>
-      <p className="text-sm text-slate-500 mb-4">Schemas e tabelas catalogados a partir do DB2</p>
+      <p className="text-sm text-slate-500 mb-4">{subtitle}</p>
 
       <div className="flex gap-3 flex-wrap mb-4">
         <input
@@ -99,12 +113,15 @@ export default function CatalogSchemasPage() {
           {visible.map((s) => (
             <Link
               key={s.schema}
-              to={`/catalogo/${s.schema}`}
+              to={`/catalogo/${s.schema}${tipoQuery}`}
               className="border border-slate-200 rounded-xl p-3 shadow-sm hover:border-indigo-400 hover:shadow-md transition-shadow"
             >
               <div className="font-semibold text-indigo-700">{s.schema}</div>
               <div className="text-sm text-slate-500">
-                {s.tableCount} tabelas · {s.viewCount} views · {s.camada} · {s.dominio.name}
+                {tipo === 'T' && `${s.tableCount} tabelas · `}
+                {tipo === 'V' && `${s.viewCount} views · `}
+                {!tipo && `${s.tableCount} tabelas · ${s.viewCount} views · `}
+                {s.camada} · {s.dominio.name}
               </div>
             </Link>
           ))}
