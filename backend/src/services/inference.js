@@ -82,3 +82,9 @@ export function inferPrefixDomain(columnName) {
   const prefix = columnName.split('_')[0];
   return PREFIXO_DOMINIOS[prefix] || 'Não classificado';
 }
+
+export function inferCompletude(percentual) {
+  if (percentual >= 90) return 'Excelente';
+  if (percentual >= 70) return 'Bom';
+  return 'Atenção';
+}

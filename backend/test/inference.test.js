@@ -1,6 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { inferCamada, inferDominio, inferClassificacao, inferPrefixDomain } from '../src/services/inference.js';
+import {
+  inferCamada,
+  inferDominio,
+  inferClassificacao,
+  inferPrefixDomain,
+  inferCompletude,
+} from '../src/services/inference.js';
 
 test('inferCamada reconhece prefixos governados', () => {
   assert.equal(inferCamada('STG_ERP'), 'STG');
@@ -51,4 +57,13 @@ test('inferPrefixDomain reconhece prefixos de coluna cadastrados', () => {
 test('inferPrefixDomain retorna Nao classificado para prefixo desconhecido', () => {
   assert.equal(inferPrefixDomain('FOOBAR_XYZ'), 'Não classificado');
   assert.equal(inferPrefixDomain('SEMPREFIXO'), 'Não classificado');
+});
+
+test('inferCompletude classifica percentuais em Excelente/Bom/Atencao', () => {
+  assert.equal(inferCompletude(100), 'Excelente');
+  assert.equal(inferCompletude(90), 'Excelente');
+  assert.equal(inferCompletude(89), 'Bom');
+  assert.equal(inferCompletude(70), 'Bom');
+  assert.equal(inferCompletude(69), 'Atenção');
+  assert.equal(inferCompletude(0), 'Atenção');
 });

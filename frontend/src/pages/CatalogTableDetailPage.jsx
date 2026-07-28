@@ -31,7 +31,10 @@ export default function CatalogTableDetailPage() {
         </h1>
         <Badge>{detail.classification}</Badge>
       </div>
-      <p className="text-sm text-slate-500 mb-4">{detail.description || 'Sem descrição cadastrada'}</p>
+      <p className="text-sm text-slate-500 mb-1">{detail.description || 'Sem descrição cadastrada'}</p>
+      <p className="text-xs text-slate-400 mb-4">
+        {detail.totalRegistros.toLocaleString('pt-BR')} registro(s)
+      </p>
       <table className="w-full text-sm border border-slate-200 rounded-lg overflow-hidden">
         <thead className="bg-slate-50 text-slate-500 text-left">
           <tr>
@@ -40,6 +43,7 @@ export default function CatalogTableDetailPage() {
             <th className="px-3 py-2">Domínio</th>
             <th className="px-3 py-2">Nulo</th>
             <th className="px-3 py-2">PK</th>
+            <th className="px-3 py-2">Completude</th>
             <th className="px-3 py-2">Descrição</th>
           </tr>
         </thead>
@@ -56,6 +60,16 @@ export default function CatalogTableDetailPage() {
               </td>
               <td className="px-3 py-2">{c.nullable ? 'Sim' : 'Não'}</td>
               <td className="px-3 py-2">{c.isPrimaryKey ? '🔑' : ''}</td>
+              <td className="px-3 py-2">
+                {c.completude ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-600">{c.completude.percentual}%</span>
+                    <Badge>{c.completude.classificacao}</Badge>
+                  </div>
+                ) : (
+                  <span className="text-slate-400">-</span>
+                )}
+              </td>
               <td className="px-3 py-2 text-slate-500">{c.description || '-'}</td>
             </tr>
           ))}

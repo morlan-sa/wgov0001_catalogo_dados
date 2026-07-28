@@ -97,6 +97,9 @@ test('GET /api/catalog/schemas/:schema/tables/:table retorna detalhe com colunas
     const body = await res.json();
     assert.equal(body.schema, 'CUR_REF');
     assert.ok(body.columns.some((c) => c.name === 'ID_PAIS' && c.isPrimaryKey));
+    assert.equal(body.totalRegistros, 252);
+    const idPais = body.columns.find((c) => c.name === 'ID_PAIS');
+    assert.deepEqual(idPais.completude, { percentual: 100, classificacao: 'Excelente' });
   } finally {
     server.close();
   }

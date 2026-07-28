@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { listSchemas } from '../repositories/schemasRepo.js';
 import { listTables } from '../repositories/tablesRepo.js';
 import { listColumns } from '../repositories/columnsRepo.js';
+import { getCompletude } from '../repositories/completenessRepo.js';
 
 const router = Router();
 
@@ -32,15 +33,26 @@ router.get('/schemas/:schema/tables/:table', async (req, res, next) => {
   try {
     const schema = req.params.schema.toUpperCase();
     const table = req.params.table.toUpperCase();
-    const [tables, columns] = await Promise.all([
-      listTables(schema),
-      listColumns(schema, table),
-    ]);
+
+    const tables = await listTables(schema);
     const tableInfo = tables.find((t) => t.name === table);
     if (!tableInfo) {
       return res.status(404).json({ error: `Tabela ${schema}.${table} não encontrada` });
     }
-    res.json({ ...tableInfo, schema, columns });
+
+    const columns = await listColumns(schema, table);
+    const completude = await getCompletude(schema, table, columns);
+    const columnsComCompletude = columns.map((c) => ({
+      ...c,
+      completude: completude.porColuna[c.name] ?? null,
+    }));
+
+    res.json({
+      ...tableInfo,
+      schema,
+      totalRegistros: completude.totalRegistros,
+      columns: columnsComCompletude,
+    });
   } catch (err) {
     next(err);
   }
