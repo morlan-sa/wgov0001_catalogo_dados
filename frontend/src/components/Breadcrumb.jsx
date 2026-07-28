@@ -8,11 +8,11 @@ export default function Breadcrumb({ items }) {
         return (
           <span key={`${item.label}-${index}`} className="flex items-center gap-1">
             {item.to && !isLast ? (
-              <Link to={item.to} className="hover:text-[#1A3A5C] hover:underline">
+              <Link to={item.to} className="hover:text-blue-700 hover:underline">
                 {item.label}
               </Link>
             ) : (
-              <span className={isLast ? 'text-[#1A3A5C] font-semibold' : ''}>{item.label}</span>
+              <span className={isLast ? 'text-blue-700 font-semibold' : ''}>{item.label}</span>
             )}
             {!isLast && <span className="text-slate-300">›</span>}
           </span>
