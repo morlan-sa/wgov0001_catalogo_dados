@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { inferCamada, inferDominio, inferClassificacao } from '../src/services/inference.js';
+import { inferCamada, inferDominio, inferClassificacao, inferPrefixDomain } from '../src/services/inference.js';
 
 test('inferCamada reconhece prefixos governados', () => {
   assert.equal(inferCamada('STG_ERP'), 'STG');
@@ -35,4 +35,20 @@ test('inferClassificacao tolera encoding corrompido nos acentos', () => {
 test('inferClassificacao retorna Nao classificado quando remarks e nulo ou sem padrao', () => {
   assert.equal(inferClassificacao(null), 'Não classificado');
   assert.equal(inferClassificacao('Uma tabela qualquer sem marcacao'), 'Não classificado');
+});
+
+test('inferPrefixDomain reconhece prefixos de coluna cadastrados', () => {
+  assert.equal(inferPrefixDomain('ID_IMPORTADOR'), 'Identificador');
+  assert.equal(inferPrefixDomain('NR_CNPJ'), 'Número');
+  assert.equal(inferPrefixDomain('NM_IMPORTADOR'), 'Nome');
+  assert.equal(inferPrefixDomain('DT_GRAV_DADOS'), 'Data');
+  assert.equal(inferPrefixDomain('IN_ATIVO'), 'Indicador');
+  assert.equal(inferPrefixDomain('DS_HASH_LINHA'), 'Descrição');
+  assert.equal(inferPrefixDomain('CD_PAIS'), 'Código');
+  assert.equal(inferPrefixDomain('VR_TOTAL'), 'Valor Monetário');
+});
+
+test('inferPrefixDomain retorna Nao classificado para prefixo desconhecido', () => {
+  assert.equal(inferPrefixDomain('FOOBAR_XYZ'), 'Não classificado');
+  assert.equal(inferPrefixDomain('SEMPREFIXO'), 'Não classificado');
 });

@@ -56,3 +56,29 @@ export function inferClassificacao(remarks) {
   if (!match) return 'Não classificado';
   return CLASSIFICACAO_LABELS[match[1]] ?? 'Não classificado';
 }
+
+const PREFIXO_DOMINIOS = {
+  CD: 'Código',
+  ID: 'Identificador',
+  NM: 'Nome',
+  DS: 'Descrição',
+  DT: 'Data',
+  HR: 'Hora',
+  NR: 'Número',
+  VL: 'Valor',
+  VR: 'Valor Monetário',
+  QT: 'Quantidade',
+  IN: 'Indicador',
+  TP: 'Tipo',
+  ST: 'Situação',
+  PC: 'Percentual',
+  TEL: 'Telefone',
+  EML: 'Email',
+  CEP: 'CEP',
+  UF: 'UF',
+};
+
+export function inferPrefixDomain(columnName) {
+  const prefix = columnName.split('_')[0];
+  return PREFIXO_DOMINIOS[prefix] || 'Não classificado';
+}
