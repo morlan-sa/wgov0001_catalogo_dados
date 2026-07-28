@@ -23,7 +23,8 @@ export default function CatalogSchemasPage() {
   return (
     <div>
       <Breadcrumb items={[{ label: 'Catálogo' }]} />
-      <h1 className="text-xl font-bold text-slate-800 mb-4">Catálogo de Dados</h1>
+      <h1 className="text-2xl font-bold text-slate-800 mb-1">Catálogo de Dados</h1>
+      <p className="text-sm text-slate-500 mb-4">Schemas e tabelas catalogados a partir do DB2</p>
       <input
         type="text"
         value={search}
@@ -36,9 +37,9 @@ export default function CatalogSchemasPage() {
           <Link
             key={s.schema}
             to={`/catalogo/${s.schema}`}
-            className="border border-slate-200 rounded-lg p-3 hover:border-[#2C6B9E] hover:shadow-sm"
+            className="border border-slate-200 rounded-lg p-3 shadow-sm hover:border-blue-400 hover:shadow-md transition-shadow"
           >
-            <div className="font-semibold text-[#1A3A5C]">{s.schema}</div>
+            <div className="font-semibold text-blue-700">{s.schema}</div>
             <div className="text-sm text-slate-500">
               {s.tableCount} tabelas · {s.camada} · {s.dominio.name}
             </div>

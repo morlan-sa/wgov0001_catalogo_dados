@@ -51,28 +51,29 @@ export default function ScannerPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-slate-800 mb-4">Scanner</h1>
+      <h1 className="text-2xl font-bold text-slate-800 mb-1">Scanner</h1>
+      <p className="text-sm text-slate-500 mb-6">Escolha quais schemas do DB2 explorar no catálogo</p>
 
       {step === 1 && (
         <div className="space-y-3 max-w-md">
           <p className="text-sm text-slate-500 mb-2">Passo 1 de 2 — Escolha o grupo</p>
           <button
             onClick={() => chooseShortcut('governadas')}
-            className="w-full text-left border border-slate-200 rounded-lg p-3 hover:border-[#2C6B9E]"
+            className="w-full text-left border border-slate-200 rounded-lg p-3 hover:border-blue-400"
           >
-            <div className="font-semibold text-[#1A3A5C]">Schemas governados</div>
+            <div className="font-semibold text-blue-700">Schemas governados</div>
             <div className="text-sm text-slate-500">STG_ / CUR_ / RPT_</div>
           </button>
           <button
             onClick={() => chooseShortcut('todas')}
-            className="w-full text-left border border-slate-200 rounded-lg p-3 hover:border-[#2C6B9E]"
+            className="w-full text-left border border-slate-200 rounded-lg p-3 hover:border-blue-400"
           >
             <div className="font-semibold">Todos os schemas</div>
             <div className="text-sm text-slate-500">{schemas.length} schemas</div>
           </button>
           <button
             onClick={() => chooseShortcut('manual')}
-            className="w-full text-left border border-slate-200 rounded-lg p-3 hover:border-[#2C6B9E]"
+            className="w-full text-left border border-slate-200 rounded-lg p-3 hover:border-blue-400"
           >
             <div className="font-semibold">Escolher manualmente</div>
             <div className="text-sm text-slate-500">Selecionar schema a schema</div>
@@ -106,7 +107,7 @@ export default function ScannerPage() {
             <button
               onClick={runQuery}
               disabled={selected.size === 0}
-              className="px-3 py-1.5 text-sm bg-[#1A3A5C] text-white rounded-md disabled:opacity-40"
+              className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md disabled:opacity-40"
             >
               Consultar ({selected.size} schemas)
             </button>

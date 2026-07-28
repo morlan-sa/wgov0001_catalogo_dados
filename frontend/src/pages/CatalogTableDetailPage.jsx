@@ -26,7 +26,7 @@ export default function CatalogTableDetailPage() {
         ]}
       />
       <div className="flex items-center gap-2 mb-1">
-        <h1 className="text-xl font-bold text-slate-800">
+        <h1 className="text-2xl font-bold text-slate-800">
           {schema}.{table}
         </h1>
         <Badge>{detail.classification}</Badge>
@@ -37,6 +37,7 @@ export default function CatalogTableDetailPage() {
           <tr>
             <th className="px-3 py-2">Coluna</th>
             <th className="px-3 py-2">Tipo</th>
+            <th className="px-3 py-2">Domínio</th>
             <th className="px-3 py-2">Nulo</th>
             <th className="px-3 py-2">PK</th>
             <th className="px-3 py-2">Descrição</th>
@@ -49,6 +50,9 @@ export default function CatalogTableDetailPage() {
               <td className="px-3 py-2 text-slate-500">
                 {c.type}
                 {c.length ? `(${c.length}${c.scale ? `,${c.scale}` : ''})` : ''}
+              </td>
+              <td className="px-3 py-2">
+                <Badge>{c.domain}</Badge>
               </td>
               <td className="px-3 py-2">{c.nullable ? 'Sim' : 'Não'}</td>
               <td className="px-3 py-2">{c.isPrimaryKey ? '🔑' : ''}</td>

@@ -18,13 +18,13 @@ export default function CatalogTablesPage() {
   return (
     <div>
       <Breadcrumb items={[{ label: 'Catálogo', to: '/catalogo' }, { label: schema }]} />
-      <h1 className="text-xl font-bold text-slate-800 mb-4">{schema}</h1>
+      <h1 className="text-2xl font-bold text-slate-800 mb-4">{schema}</h1>
       <div className="space-y-2">
         {tables.map((t) => (
           <Link
             key={t.name}
             to={`/catalogo/${schema}/${t.name}`}
-            className="flex items-center justify-between border border-slate-200 rounded-lg p-3 hover:border-[#2C6B9E]"
+            className="flex items-center justify-between border border-slate-200 rounded-lg p-3 shadow-sm hover:border-blue-400 hover:shadow-md transition-shadow"
           >
             <div>
               <div className="font-medium text-slate-800">{t.name}</div>
