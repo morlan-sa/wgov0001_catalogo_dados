@@ -127,7 +127,36 @@ test('GET /api/dashboard/summary retorna contadores agregados', async () => {
     const body = await res.json();
     assert.ok(body.totalSchemas > 10);
     assert.ok(body.totalTables > 0);
+    assert.ok(body.totalViews > 0);
     assert.ok(typeof body.porCamada === 'object');
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /api/catalog/columns/search retorna colunas cujo nome bate com o termo', async () => {
+  const app = createApp();
+  const server = await listen(app);
+  const { port } = server.address();
+  try {
+    const res = await fetch(`http://localhost:${port}/api/catalog/columns/search?q=CNPJ`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.ok(Array.isArray(body));
+    assert.ok(body.some((r) => r.schema === 'CUR_COM' && r.table === 'IMPORTADOR' && r.column === 'NR_CNPJ'));
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /api/catalog/columns/search sem termo retorna lista vazia', async () => {
+  const app = createApp();
+  const server = await listen(app);
+  const { port } = server.address();
+  try {
+    const res = await fetch(`http://localhost:${port}/api/catalog/columns/search`);
+    assert.equal(res.status, 200);
+    assert.deepEqual(await res.json(), []);
   } finally {
     server.close();
   }

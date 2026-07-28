@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Database, Table2, Layers } from 'lucide-react';
+import { Database, Table2, Eye, Layers } from 'lucide-react';
 import StatCard from '../components/StatCard.jsx';
 import { getDashboardSummary } from '../api/client.js';
 
@@ -22,7 +22,8 @@ export default function DashboardPage() {
       <p className="text-sm text-slate-500 mb-6">Visão geral do catálogo de dados do DB2</p>
       <div className="flex gap-4 mb-6 flex-wrap">
         <StatCard label="Schemas no DB2" value={summary.totalSchemas} icon={Database} tone="indigo" />
-        <StatCard label="Tabelas/Views" value={summary.totalTables} icon={Table2} tone="sky" />
+        <StatCard label="Tabelas" value={summary.totalTables} icon={Table2} tone="sky" />
+        <StatCard label="Views" value={summary.totalViews} icon={Eye} tone="purple" />
       </div>
       <h2 className="text-sm font-semibold text-slate-600 mb-2">Tabelas por camada</h2>
       <div className="flex gap-4 flex-wrap">

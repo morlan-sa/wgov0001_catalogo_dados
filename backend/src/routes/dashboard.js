@@ -8,11 +8,12 @@ router.get('/summary', async (req, res, next) => {
     const schemas = await listSchemas();
     const totalSchemas = schemas.length;
     const totalTables = schemas.reduce((sum, s) => sum + s.tableCount, 0);
+    const totalViews = schemas.reduce((sum, s) => sum + s.viewCount, 0);
     const porCamada = schemas.reduce((acc, s) => {
-      acc[s.camada] = (acc[s.camada] || 0) + s.tableCount;
+      acc[s.camada] = (acc[s.camada] || 0) + s.tableCount + s.viewCount;
       return acc;
     }, {});
-    res.json({ totalSchemas, totalTables, porCamada });
+    res.json({ totalSchemas, totalTables, totalViews, porCamada });
   } catch (err) {
     next(err);
   }

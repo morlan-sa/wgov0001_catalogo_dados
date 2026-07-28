@@ -96,7 +96,9 @@ export default function ScannerPage() {
               <label key={s.schema} className="flex items-center gap-2 px-2 py-1 text-sm">
                 <input type="checkbox" checked={selected.has(s.schema)} onChange={() => toggle(s.schema)} />
                 <span className="font-medium">{s.schema}</span>
-                <span className="text-slate-400 ml-auto">{s.tableCount} tabelas</span>
+                <span className="text-slate-400 ml-auto">
+                  {s.tableCount} tabelas · {s.viewCount} views
+                </span>
               </label>
             ))}
           </div>

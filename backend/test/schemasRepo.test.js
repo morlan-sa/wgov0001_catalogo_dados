@@ -11,10 +11,19 @@ test('listSchemas retorna schemas reais do DB2 dev com contagem de tabelas', asy
   assert.ok(curCom, 'CUR_COM deveria aparecer na lista de schemas');
   assert.equal(curCom.camada, 'CUR');
   assert.deepEqual(curCom.dominio, { code: 'COM', name: 'Comercial' });
-  assert.ok(curCom.tableCount >= 1);
+  assert.equal(curCom.tableCount, 1);
+  assert.equal(curCom.viewCount, 0);
 
   const legado = schemas.find((s) => s.schema === 'COMPRAS');
   assert.ok(legado, 'COMPRAS deveria aparecer na lista de schemas');
   assert.equal(legado.camada, 'LEGADO');
   assert.deepEqual(legado.dominio, { code: 'NC', name: 'Não classificado' });
+  assert.ok(legado.tableCount >= 1);
+  assert.ok(legado.viewCount >= 1, 'COMPRAS deveria ter pelo menos 1 view');
+});
+
+test('listSchemas nao inclui os schemas de sistema do DB2 (SYS*)', async () => {
+  const schemas = await listSchemas();
+  const sysSchemas = schemas.filter((s) => s.schema.startsWith('SYS'));
+  assert.deepEqual(sysSchemas, [], 'schemas SYSCAT/SYSIBM/etc. nao deveriam aparecer no catalogo');
 });

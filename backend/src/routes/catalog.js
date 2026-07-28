@@ -3,8 +3,23 @@ import { listSchemas } from '../repositories/schemasRepo.js';
 import { listTables } from '../repositories/tablesRepo.js';
 import { listColumns } from '../repositories/columnsRepo.js';
 import { getCompletude } from '../repositories/completenessRepo.js';
+import { searchColumns } from '../repositories/columnSearchRepo.js';
 
 const router = Router();
+
+router.get('/columns/search', async (req, res, next) => {
+  try {
+    const term = (req.query.q || '').toString();
+    const filterParam = req.query.filter;
+    const schemas = filterParam
+      ? filterParam.toString().split(',').map((s) => s.trim().toUpperCase()).filter(Boolean)
+      : null;
+    const results = await searchColumns(term, schemas);
+    res.json(results);
+  } catch (err) {
+    next(err);
+  }
+});
 
 router.get('/schemas', async (req, res, next) => {
   try {

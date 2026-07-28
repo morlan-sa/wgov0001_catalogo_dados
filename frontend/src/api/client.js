@@ -29,3 +29,9 @@ export function getCatalogTableDetail(schema, table) {
 export function getDashboardSummary() {
   return request('/dashboard/summary');
 }
+
+export function searchColumns(term, filter) {
+  const params = new URLSearchParams({ q: term });
+  if (filter && filter.length) params.set('filter', filter.join(','));
+  return request(`/catalog/columns/search?${params.toString()}`);
+}
