@@ -6,6 +6,7 @@ import {
   inferClassificacao,
   inferPrefixDomain,
   inferCompletude,
+  listDominiosNegocio,
 } from '../src/services/inference.js';
 
 test('inferCamada reconhece prefixos governados', () => {
@@ -57,6 +58,13 @@ test('inferPrefixDomain reconhece prefixos de coluna cadastrados', () => {
 test('inferPrefixDomain retorna Nao classificado para prefixo desconhecido', () => {
   assert.equal(inferPrefixDomain('FOOBAR_XYZ'), 'Não classificado');
   assert.equal(inferPrefixDomain('SEMPREFIXO'), 'Não classificado');
+});
+
+test('listDominiosNegocio retorna os 24 dominios de negocio cadastrados', () => {
+  const dominios = listDominiosNegocio();
+  assert.equal(dominios.length, 24);
+  assert.ok(dominios.some((d) => d.code === 'COM' && d.name === 'Comercial'));
+  assert.ok(dominios.some((d) => d.code === 'IAM' && d.name === 'Identidade e Controle de Acesso'));
 });
 
 test('inferCompletude classifica percentuais em Excelente/Bom/Atencao', () => {

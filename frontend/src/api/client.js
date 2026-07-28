@@ -35,3 +35,7 @@ export function searchColumns(term, filter) {
   if (filter && filter.length) params.set('filter', filter.join(','));
   return request(`/catalog/columns/search?${params.toString()}`);
 }
+
+export function getDomains() {
+  return request('/domains');
+}

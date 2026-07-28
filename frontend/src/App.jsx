@@ -5,6 +5,7 @@ import ScannerPage from './pages/ScannerPage.jsx';
 import CatalogSchemasPage from './pages/CatalogSchemasPage.jsx';
 import CatalogTablesPage from './pages/CatalogTablesPage.jsx';
 import CatalogTableDetailPage from './pages/CatalogTableDetailPage.jsx';
+import DomainsPage from './pages/DomainsPage.jsx';
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/catalogo" element={<CatalogSchemasPage />} />
           <Route path="/catalogo/:schema" element={<CatalogTablesPage />} />
           <Route path="/catalogo/:schema/:table" element={<CatalogTableDetailPage />} />
+          <Route path="/dominios" element={<DomainsPage />} />
         </Routes>
       </main>
     </div>

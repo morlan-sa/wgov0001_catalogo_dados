@@ -3,6 +3,7 @@ import cors from 'cors';
 import schemasRouter from './routes/schemas.js';
 import catalogRouter from './routes/catalog.js';
 import dashboardRouter from './routes/dashboard.js';
+import domainsRouter from './routes/domains.js';
 
 export function createApp() {
   const app = express();
@@ -12,6 +13,7 @@ export function createApp() {
   app.use('/api/schemas', schemasRouter);
   app.use('/api/catalog', catalogRouter);
   app.use('/api/dashboard', dashboardRouter);
+  app.use('/api/domains', domainsRouter);
 
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {

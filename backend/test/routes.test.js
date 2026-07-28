@@ -161,3 +161,18 @@ test('GET /api/catalog/columns/search sem termo retorna lista vazia', async () =
     server.close();
   }
 });
+
+test('GET /api/domains retorna os 24 dominios de negocio com uso real', async () => {
+  const app = createApp();
+  const server = await listen(app);
+  const { port } = server.address();
+  try {
+    const res = await fetch(`http://localhost:${port}/api/domains`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.length, 24);
+    assert.ok(body.some((d) => d.code === 'COM' && d.name === 'Comercial' && d.schemaCount >= 2));
+  } finally {
+    server.close();
+  }
+});

@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', description: 'Visão geral da governança', icon: LayoutDashboard, end: true },
   { to: '/catalogo', label: 'Catálogo', description: 'Schemas e tabelas do DB2', icon: BookOpen },
   { to: '/scanner', label: 'Scanner', description: 'Selecionar schemas para explorar', icon: ScanSearch },
+  { to: '/dominios', label: 'Domínios', description: 'Catálogo de domínios de negócio', icon: Boxes },
 ];
 
 export default function Sidebar() {
@@ -44,13 +45,6 @@ export default function Sidebar() {
             )}
           </NavLink>
         ))}
-        <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl text-sm text-slate-300 cursor-not-allowed">
-          <Boxes size={16} className="mt-0.5 shrink-0" />
-          <span>
-            <span className="block font-medium">Domínios</span>
-            <span className="block text-xs">em breve</span>
-          </span>
-        </div>
       </nav>
     </aside>
   );

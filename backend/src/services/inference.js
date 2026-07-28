@@ -25,6 +25,10 @@ const DOMINIOS_NEGOCIO = {
   IAM: 'Identidade e Controle de Acesso',
 };
 
+export function listDominiosNegocio() {
+  return Object.entries(DOMINIOS_NEGOCIO).map(([code, name]) => ({ code, name }));
+}
+
 const CAMADA_PREFIXOS = ['STG', 'CUR', 'RPT'];
 
 export function inferCamada(schemaName) {
