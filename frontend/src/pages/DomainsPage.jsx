@@ -30,9 +30,15 @@ export default function DomainsPage() {
                 emUso ? 'border-slate-200 hover:shadow-md' : 'border-slate-100'
               }`}
             >
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span
+                  className={`inline-flex items-center justify-center min-w-[3rem] px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
+                    emUso ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-400'
+                  }`}
+                >
+                  {d.code}
+                </span>
                 <div className={`font-semibold ${emUso ? 'text-indigo-700' : 'text-slate-400'}`}>{d.name}</div>
-                <span className="font-mono text-xs text-slate-400">{d.code}</span>
               </div>
               <div className={`text-sm ${emUso ? 'text-slate-500' : 'text-slate-300'}`}>
                 {d.schemaCount} schema(s) · {d.objectCount} tabela(s)/view(s)
