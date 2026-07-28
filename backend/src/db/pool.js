@@ -1,6 +1,14 @@
 import ibmdb from 'ibm_db';
 import { db2Config } from '../config/env.js';
 
+// Node's ibm_db negotiates a client codepage with the DB2 CLI driver at
+// connect time; without this, accented characters in CHAR/VARCHAR columns
+// (e.g. table/column REMARKS) come back as literal U+FFFD replacement
+// characters instead of being decoded as UTF-8. Must be set before the
+// first ibmdb.open() call (verified sufficient even after `import ibm_db`
+// has already run, since the codepage is read at SQLConnect time).
+process.env.DB2CODEPAGE = process.env.DB2CODEPAGE || '1208';
+
 function buildConnectionString() {
   return (
     `DATABASE=${db2Config.database};` +
