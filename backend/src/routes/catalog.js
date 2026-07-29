@@ -66,6 +66,7 @@ router.get('/schemas/:schema/tables/:table', async (req, res, next) => {
       ...tableInfo,
       schema,
       totalRegistros: completude.totalRegistros,
+      saude: completude.saude,
       columns: columnsComCompletude,
     });
   } catch (err) {

@@ -7,6 +7,7 @@ import {
   inferPrefixDomain,
   inferCompletude,
   listDominiosNegocio,
+  isAuditColumn,
 } from '../src/services/inference.js';
 
 test('inferCamada reconhece prefixos governados', () => {
@@ -74,4 +75,19 @@ test('inferCompletude classifica percentuais em Excelente/Bom/Atencao', () => {
   assert.equal(inferCompletude(70), 'Bom');
   assert.equal(inferCompletude(69), 'Atenção');
   assert.equal(inferCompletude(0), 'Atenção');
+});
+
+test('isAuditColumn reconhece os 6 campos de governanca padrao da skill', () => {
+  assert.equal(isAuditColumn('NM_ORIGEM_GRAVACAO'), true);
+  assert.equal(isAuditColumn('DT_GRAV_DADOS'), true);
+  assert.equal(isAuditColumn('NM_ORIGEM_ALTERACAO'), true);
+  assert.equal(isAuditColumn('DT_ATU_DADOS'), true);
+  assert.equal(isAuditColumn('IN_ATIVO'), true);
+  assert.equal(isAuditColumn('DS_HASH_LINHA'), true);
+});
+
+test('isAuditColumn retorna false para colunas de negocio', () => {
+  assert.equal(isAuditColumn('ID_PAIS'), false);
+  assert.equal(isAuditColumn('NM_PAIS'), false);
+  assert.equal(isAuditColumn('NR_CNPJ'), false);
 });

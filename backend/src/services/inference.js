@@ -92,3 +92,16 @@ export function inferCompletude(percentual) {
   if (percentual >= 70) return 'Bom';
   return 'Atenção';
 }
+
+const AUDIT_COLUMNS = new Set([
+  'NM_ORIGEM_GRAVACAO',
+  'DT_GRAV_DADOS',
+  'NM_ORIGEM_ALTERACAO',
+  'DT_ATU_DADOS',
+  'IN_ATIVO',
+  'DS_HASH_LINHA',
+]);
+
+export function isAuditColumn(columnName) {
+  return AUDIT_COLUMNS.has(columnName.toUpperCase());
+}

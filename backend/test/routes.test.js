@@ -100,6 +100,9 @@ test('GET /api/catalog/schemas/:schema/tables/:table retorna detalhe com colunas
     assert.equal(body.totalRegistros, 252);
     const idPais = body.columns.find((c) => c.name === 'ID_PAIS');
     assert.deepEqual(idPais.completude, { percentual: 100, classificacao: 'Excelente' });
+    assert.deepEqual(body.saude, { percentual: 100, classificacao: 'Excelente' });
+    const dtAtuDados = body.columns.find((c) => c.name === 'DT_ATU_DADOS');
+    assert.equal(dtAtuDados.completude, null, 'coluna de auditoria não deve ter completude calculada');
   } finally {
     server.close();
   }

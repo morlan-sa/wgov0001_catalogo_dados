@@ -32,9 +32,12 @@ export default function CatalogTableDetailPage() {
         <Badge>{detail.classification}</Badge>
       </div>
       <p className="text-sm text-slate-500 mb-1">{detail.description || 'Sem descrição cadastrada'}</p>
-      <p className="text-xs text-slate-400 mb-4">
-        {detail.totalRegistros.toLocaleString('pt-BR')} registro(s)
-      </p>
+      <div className="flex items-center gap-2 text-xs text-slate-400 mb-4">
+        <span>{detail.totalRegistros.toLocaleString('pt-BR')} registro(s)</span>
+        <span>·</span>
+        <span>Saúde dos dados: {detail.saude.percentual}%</span>
+        <Badge>{detail.saude.classificacao}</Badge>
+      </div>
       <table className="w-full text-sm border border-slate-200 rounded-lg overflow-hidden">
         <thead className="bg-slate-50 text-slate-500 text-left">
           <tr>
