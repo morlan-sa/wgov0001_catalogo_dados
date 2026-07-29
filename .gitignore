@@ -2,3 +2,10 @@ node_modules/
 dist/
 .env
 *.log
+
+# Scratch workspace for the superpowers brainstorming/subagent-driven-dev skills
+# (mockup HTML, task briefs/reports, review diffs - not project source)
+.superpowers/
+
+# Claude Code local session settings (permission allowlist etc.) - machine-specific
+.claude/settings.local.json
