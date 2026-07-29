@@ -38,6 +38,10 @@ export function getDashboardSaude() {
   return request('/dashboard/saude');
 }
 
+export function getDashboardSaudeLegado() {
+  return request('/dashboard/saude-legado');
+}
+
 export function searchColumns(term, filter) {
   const params = new URLSearchParams({ q: term });
   if (filter && filter.length) params.set('filter', filter.join(','));

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { getSaudeGovernanca } from '../src/repositories/healthRepo.js';
+import { getSaudeGovernanca, getSaudeLegado } from '../src/repositories/healthRepo.js';
 
 test('getSaudeGovernanca calcula a media de saude so das tabelas governadas (STG/CUR/RPT)', async () => {
   const result = await getSaudeGovernanca();
@@ -29,4 +29,24 @@ test('getSaudeGovernanca retorna a saude quebrada por schema, ordenada alfabetic
   // do mesmo conjunto de tabelas avaliadas nesta mesma chamada)
   const totalTabelasNaQuebra = result.porSchema.reduce((soma, s) => soma + s.totalTabelas, 0);
   assert.equal(totalTabelasNaQuebra, result.totalTabelasAvaliadas);
+});
+
+test('getSaudeLegado calcula cobertura de documentacao por schema legado (sem varrer dados)', async () => {
+  const result = await getSaudeLegado();
+
+  assert.equal(result.metrica, 'documentacao');
+  assert.ok(result.totalTabelasAvaliadas > 1000, 'deveria contar milhares de tabelas legadas');
+  assert.ok(result.percentual >= 0 && result.percentual <= 100);
+  assert.ok(['Excelente', 'Bom', 'Atenção'].includes(result.classificacao));
+
+  assert.ok(Array.isArray(result.porSchema));
+  assert.ok(result.porSchema.length > 40, 'deveria haver dezenas de schemas legados');
+
+  const nomes = result.porSchema.map((s) => s.schema);
+  assert.deepEqual(nomes, [...nomes].sort());
+  assert.ok(!nomes.includes('CUR_COM'), 'schema governado não deveria aparecer no legado');
+
+  const compras = result.porSchema.find((s) => s.schema === 'COMPRAS');
+  assert.ok(compras);
+  assert.ok(compras.totalTabelas > 100);
 });

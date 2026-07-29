@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { listSchemas } from '../repositories/schemasRepo.js';
-import { getSaudeGovernanca } from '../repositories/healthRepo.js';
+import { getSaudeGovernanca, getSaudeLegado } from '../repositories/healthRepo.js';
 
 const router = Router();
 
@@ -23,6 +23,15 @@ router.get('/summary', async (req, res, next) => {
 router.get('/saude', async (req, res, next) => {
   try {
     const saude = await getSaudeGovernanca();
+    res.json(saude);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/saude-legado', async (req, res, next) => {
+  try {
+    const saude = await getSaudeLegado();
     res.json(saude);
   } catch (err) {
     next(err);

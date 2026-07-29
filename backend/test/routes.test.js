@@ -169,6 +169,23 @@ test('GET /api/dashboard/saude retorna a saude agregada dos schemas governados',
   }
 });
 
+test('GET /api/dashboard/saude-legado retorna cobertura de documentacao dos schemas legados', async () => {
+  const app = createApp();
+  const server = await listen(app);
+  const { port } = server.address();
+  try {
+    const res = await fetch(`http://localhost:${port}/api/dashboard/saude-legado`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.metrica, 'documentacao');
+    assert.ok(body.totalTabelasAvaliadas > 1000);
+    assert.ok(Array.isArray(body.porSchema));
+    assert.ok(body.porSchema.some((s) => s.schema === 'COMPRAS'));
+  } finally {
+    server.close();
+  }
+});
+
 test('GET /api/catalog/columns/search retorna colunas cujo nome bate com o termo', async () => {
   const app = createApp();
   const server = await listen(app);

@@ -20,13 +20,34 @@ function buildConnectionString() {
   );
 }
 
-function openConnection() {
+function openConnectionOnce() {
   return new Promise((resolve, reject) => {
     ibmdb.open(buildConnectionString(), (err, conn) => {
       if (err) return reject(err);
       resolve(conn);
     });
   });
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// SQL5005C ("failed to access the database manager configuration file") shows up
+// intermittently under heavy connection churn (many queries opening/closing
+// connections concurrently, e.g. across a full test-suite run) - it's a transient
+// CLI-driver hiccup, not a real connectivity problem, and a single retry after a
+// short delay reliably succeeds. Any other error is not retried.
+async function openConnection() {
+  try {
+    return await openConnectionOnce();
+  } catch (err) {
+    if (err?.sqlcode === -5005) {
+      await sleep(200);
+      return openConnectionOnce();
+    }
+    throw err;
+  }
 }
 
 function closeConnection(conn) {
