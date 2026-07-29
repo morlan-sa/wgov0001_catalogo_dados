@@ -162,6 +162,8 @@ test('GET /api/dashboard/saude retorna a saude agregada dos schemas governados',
     assert.ok(body.totalTabelasAvaliadas > 0);
     assert.ok(body.percentual >= 0 && body.percentual <= 100);
     assert.ok(['Excelente', 'Bom', 'Atenção'].includes(body.classificacao));
+    assert.ok(Array.isArray(body.porSchema));
+    assert.ok(body.porSchema.some((s) => s.schema === 'CUR_COM'));
   } finally {
     server.close();
   }

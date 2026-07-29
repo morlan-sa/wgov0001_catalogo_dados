@@ -22,6 +22,25 @@ async function mapWithConcurrency(items, limit, fn) {
   return results;
 }
 
+function agruparPorSchema(resultadosPorTabela) {
+  const grupos = new Map();
+  for (const r of resultadosPorTabela) {
+    if (!grupos.has(r.schema)) grupos.set(r.schema, []);
+    grupos.get(r.schema).push(r.percentual);
+  }
+  return Array.from(grupos.entries())
+    .map(([schema, percentuais]) => {
+      const media = Math.round(percentuais.reduce((soma, p) => soma + p, 0) / percentuais.length);
+      return {
+        schema,
+        percentual: media,
+        classificacao: inferCompletude(media),
+        totalTabelas: percentuais.length,
+      };
+    })
+    .sort((a, b) => a.schema.localeCompare(b.schema));
+}
+
 // Saúde da governança é calculada só sobre os schemas governados (STG_/CUR_/RPT_),
 // não sobre os schemas legados - são poucas tabelas (conjunto pequeno e rápido de
 // avaliar), e "saúde da governança" só faz sentido sobre o que de fato passou pelo
@@ -39,22 +58,23 @@ export async function getSaudeGovernanca() {
   const todasTabelas = tabelasPorSchema.flat();
 
   if (todasTabelas.length === 0) {
-    return { percentual: 100, classificacao: inferCompletude(100), totalTabelasAvaliadas: 0 };
+    return { percentual: 100, classificacao: inferCompletude(100), totalTabelasAvaliadas: 0, porSchema: [] };
   }
 
-  const percentuaisPorTabela = await mapWithConcurrency(todasTabelas, CONCURRENCY, async ({ schema, table }) => {
+  const resultadosPorTabela = await mapWithConcurrency(todasTabelas, CONCURRENCY, async ({ schema, table }) => {
     const columns = await listColumns(schema, table);
     const completude = await getCompletude(schema, table, columns);
-    return completude.saude.percentual;
+    return { schema, table, percentual: completude.saude.percentual };
   });
 
   const media = Math.round(
-    percentuaisPorTabela.reduce((soma, p) => soma + p, 0) / percentuaisPorTabela.length
+    resultadosPorTabela.reduce((soma, r) => soma + r.percentual, 0) / resultadosPorTabela.length
   );
 
   return {
     percentual: media,
     classificacao: inferCompletude(media),
     totalTabelasAvaliadas: todasTabelas.length,
+    porSchema: agruparPorSchema(resultadosPorTabela),
   };
 }
