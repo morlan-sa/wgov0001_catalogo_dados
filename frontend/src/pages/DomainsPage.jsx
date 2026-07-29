@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Breadcrumb from '../components/Breadcrumb.jsx';
 import { getDomains } from '../api/client.js';
 
@@ -23,11 +24,14 @@ export default function DomainsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {domains.map((d) => {
           const emUso = d.schemaCount > 0;
+          const Wrapper = emUso ? Link : 'div';
+          const wrapperProps = emUso ? { to: `/dominios/${d.code}` } : {};
           return (
-            <div
+            <Wrapper
               key={d.code}
+              {...wrapperProps}
               className={`border rounded-xl p-3 shadow-sm transition-shadow ${
-                emUso ? 'border-slate-200 hover:shadow-md' : 'border-slate-100'
+                emUso ? 'border-slate-200 hover:shadow-md hover:border-indigo-400' : 'border-slate-100'
               }`}
             >
               <div className="flex items-center gap-2 mb-1">
@@ -43,7 +47,7 @@ export default function DomainsPage() {
               <div className={`text-sm ${emUso ? 'text-slate-500' : 'text-slate-300'}`}>
                 {d.schemaCount} schema(s) · {d.objectCount} tabela(s)/view(s)
               </div>
-            </div>
+            </Wrapper>
           );
         })}
       </div>
