@@ -87,6 +87,20 @@ test('GET /api/catalog/schemas/:schema/tables retorna tabelas do schema', async 
   }
 });
 
+test('GET /api/catalog/schemas/:schema/tables/:table/saude retorna resumo leve de saude', async () => {
+  const app = createApp();
+  const server = await listen(app);
+  const { port } = server.address();
+  try {
+    const res = await fetch(`http://localhost:${port}/api/catalog/schemas/CUR_REF/tables/PAIS/saude`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.deepEqual(body, { totalRegistros: 252, saude: { percentual: 100, classificacao: 'Excelente' } });
+  } finally {
+    server.close();
+  }
+});
+
 test('GET /api/catalog/schemas/:schema/tables/:table retorna detalhe com colunas', async () => {
   const app = createApp();
   const server = await listen(app);
@@ -132,6 +146,22 @@ test('GET /api/dashboard/summary retorna contadores agregados', async () => {
     assert.ok(body.totalTables > 0);
     assert.ok(body.totalViews > 0);
     assert.ok(typeof body.porCamada === 'object');
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /api/dashboard/saude retorna a saude agregada dos schemas governados', async () => {
+  const app = createApp();
+  const server = await listen(app);
+  const { port } = server.address();
+  try {
+    const res = await fetch(`http://localhost:${port}/api/dashboard/saude`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.ok(body.totalTabelasAvaliadas > 0);
+    assert.ok(body.percentual >= 0 && body.percentual <= 100);
+    assert.ok(['Excelente', 'Bom', 'Atenção'].includes(body.classificacao));
   } finally {
     server.close();
   }

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { listSchemas } from '../repositories/schemasRepo.js';
+import { getSaudeGovernanca } from '../repositories/healthRepo.js';
 
 const router = Router();
 
@@ -14,6 +15,15 @@ router.get('/summary', async (req, res, next) => {
       return acc;
     }, {});
     res.json({ totalSchemas, totalTables, totalViews, porCamada });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/saude', async (req, res, next) => {
+  try {
+    const saude = await getSaudeGovernanca();
+    res.json(saude);
   } catch (err) {
     next(err);
   }

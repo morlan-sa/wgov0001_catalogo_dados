@@ -44,6 +44,18 @@ router.get('/schemas/:schema/tables', async (req, res, next) => {
   }
 });
 
+router.get('/schemas/:schema/tables/:table/saude', async (req, res, next) => {
+  try {
+    const schema = req.params.schema.toUpperCase();
+    const table = req.params.table.toUpperCase();
+    const columns = await listColumns(schema, table);
+    const completude = await getCompletude(schema, table, columns);
+    res.json({ totalRegistros: completude.totalRegistros, saude: completude.saude });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get('/schemas/:schema/tables/:table', async (req, res, next) => {
   try {
     const schema = req.params.schema.toUpperCase();

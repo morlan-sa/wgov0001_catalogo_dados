@@ -8,7 +8,7 @@ const TONE_STYLES = {
   amber: 'bg-amber-50 text-amber-600',
 };
 
-export default function StatCard({ label, value, icon: Icon, tone = 'indigo', to }) {
+export default function StatCard({ label, value, icon: Icon, tone = 'indigo', to, subtitle }) {
   const className = `bg-white border border-slate-200 rounded-xl p-4 flex-1 min-w-[140px] shadow-sm transition-shadow ${
     to ? 'hover:shadow-md hover:border-indigo-400' : ''
   }`;
@@ -28,6 +28,7 @@ export default function StatCard({ label, value, icon: Icon, tone = 'indigo', to
         )}
       </div>
       <div className="text-2xl font-bold text-slate-800">{value}</div>
+      {subtitle && <div className="text-xs text-slate-400 mt-1">{subtitle}</div>}
     </>
   );
 

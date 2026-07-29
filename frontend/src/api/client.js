@@ -26,8 +26,16 @@ export function getCatalogTableDetail(schema, table) {
   return request(`/catalog/schemas/${schema}/tables/${table}`);
 }
 
+export function getTableSaude(schema, table) {
+  return request(`/catalog/schemas/${schema}/tables/${table}/saude`);
+}
+
 export function getDashboardSummary() {
   return request('/dashboard/summary');
+}
+
+export function getDashboardSaude() {
+  return request('/dashboard/saude');
 }
 
 export function searchColumns(term, filter) {
