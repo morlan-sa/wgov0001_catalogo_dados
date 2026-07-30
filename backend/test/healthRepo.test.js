@@ -31,16 +31,20 @@ test('getSaudeGovernanca retorna a saude quebrada por schema, ordenada alfabetic
   assert.equal(totalTabelasNaQuebra, result.totalTabelasAvaliadas);
 });
 
-test('getSaudeLegado calcula cobertura de documentacao por schema legado (sem varrer dados)', async () => {
+test('getSaudeLegado calcula completude real de dados sobre uma amostra das menores tabelas de cada schema legado', async () => {
   const result = await getSaudeLegado();
 
-  assert.equal(result.metrica, 'documentacao');
-  assert.ok(result.totalTabelasAvaliadas > 1000, 'deveria contar milhares de tabelas legadas');
+  assert.equal(result.metrica, 'completude_dados');
+  assert.equal(result.amostraPorSchema, 5);
   assert.ok(result.percentual >= 0 && result.percentual <= 100);
   assert.ok(['Excelente', 'Bom', 'Atenção'].includes(result.classificacao));
 
   assert.ok(Array.isArray(result.porSchema));
-  assert.ok(result.porSchema.length > 40, 'deveria haver dezenas de schemas legados');
+  // nem todo schema legado tem tabela legível: alguns (ex.: DB2INST1, MORLANWEB, BI, ISO)
+  // são inteiramente inacessíveis para devlucas (sem privilégio SELECT em nenhuma tabela) -
+  // por isso o teto real é bem menor que o total de schemas legados, não "dezenas" dele.
+  assert.ok(result.porSchema.length > 25, 'deveria haver dezenas de schemas legados com amostra');
+  assert.ok(Array.isArray(result.schemasSemAcesso));
 
   const nomes = result.porSchema.map((s) => s.schema);
   assert.deepEqual(nomes, [...nomes].sort());
@@ -48,5 +52,10 @@ test('getSaudeLegado calcula cobertura de documentacao por schema legado (sem va
 
   const compras = result.porSchema.find((s) => s.schema === 'COMPRAS');
   assert.ok(compras);
-  assert.ok(compras.totalTabelas > 100);
+  // amostra e' no maximo 5 por schema (nao o total real de tabelas do schema, que e 428)
+  assert.ok(compras.totalTabelas <= 5);
+  assert.ok(compras.percentual >= 0 && compras.percentual <= 100);
+
+  const totalTabelasNaQuebra = result.porSchema.reduce((soma, s) => soma + s.totalTabelas, 0);
+  assert.equal(totalTabelasNaQuebra, result.totalTabelasAvaliadas);
 });

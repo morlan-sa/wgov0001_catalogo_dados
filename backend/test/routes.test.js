@@ -169,7 +169,7 @@ test('GET /api/dashboard/saude retorna a saude agregada dos schemas governados',
   }
 });
 
-test('GET /api/dashboard/saude-legado retorna cobertura de documentacao dos schemas legados', async () => {
+test('GET /api/dashboard/saude-legado retorna completude real de dados sobre uma amostra dos schemas legados', async () => {
   const app = createApp();
   const server = await listen(app);
   const { port } = server.address();
@@ -177,10 +177,11 @@ test('GET /api/dashboard/saude-legado retorna cobertura de documentacao dos sche
     const res = await fetch(`http://localhost:${port}/api/dashboard/saude-legado`);
     assert.equal(res.status, 200);
     const body = await res.json();
-    assert.equal(body.metrica, 'documentacao');
-    assert.ok(body.totalTabelasAvaliadas > 1000);
+    assert.equal(body.metrica, 'completude_dados');
+    assert.ok(body.totalTabelasAvaliadas > 0);
     assert.ok(Array.isArray(body.porSchema));
     assert.ok(body.porSchema.some((s) => s.schema === 'COMPRAS'));
+    assert.ok(Array.isArray(body.schemasSemAcesso));
   } finally {
     server.close();
   }

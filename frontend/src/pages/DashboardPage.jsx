@@ -117,7 +117,7 @@ export default function DashboardPage() {
 
       <HealthChartSection
         title="Saúde por schema — legado"
-        description="% de tabelas com descrição cadastrada no DB2 (não é completude de dados — schemas legados podem ter tabelas com milhões de linhas, então essa métrica usa só o catálogo, sem varrer os dados)"
+        description={`% de preenchimento real dos dados, igual ao gráfico acima — mas calculado sobre uma amostra das ${saudeLegado?.amostraPorSchema ?? 5} menores tabelas de cada schema (schemas legados podem ter tabelas com milhões de linhas)${saudeLegado?.schemasSemAcesso?.length ? `. ${saudeLegado.schemasSemAcesso.length} schema(s) sem tabela legível para este usuário não aparecem no gráfico.` : ''}`}
         data={saudeLegado}
         error={saudeLegadoError}
       />
