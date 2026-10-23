@@ -40,6 +40,8 @@ describe("mapeamento snake_case → camelCase dos hooks", () => {
       type: "Tabela",
       description: null,
       classification: "Restrito",
+      conformidade: { aplicavel: true, conformes: 1, avisos: 0, fora: 0, total: 1, percentual: 100 },
+      documentacao: { percentual: 0, documentadas: 0, total: 2 },
       schema_name: "CUR_REF",
       total_registros: 252,
       saude: { percentual: 99, classificacao: "Excelente" },
@@ -56,6 +58,7 @@ describe("mapeamento snake_case → camelCase dos hooks", () => {
           is_primary_key: true,
           domain: "Identificador",
           completude: { percentual: 100, classificacao: "Excelente" },
+          conformidade: { resultado: "conforme", problemas: [], sugestao: null },
         },
         {
           name: "DT_ATU_DADOS",
@@ -68,6 +71,7 @@ describe("mapeamento snake_case → camelCase dos hooks", () => {
           is_primary_key: false,
           domain: "Data",
           completude: null,
+          conformidade: null,
         },
       ],
     })
@@ -122,6 +126,8 @@ describe("mapeamento snake_case → camelCase dos hooks", () => {
       type: "Tabela",
       description: null,
       classification: "Não classificado",
+      conformidade: { aplicavel: false, conformes: 0, avisos: 0, fora: 0, total: 0, percentual: null },
+      documentacao: { percentual: null, documentadas: 0, total: 0 },
       schema_name: "cur_log",
       total_registros: null,
       saude: null,

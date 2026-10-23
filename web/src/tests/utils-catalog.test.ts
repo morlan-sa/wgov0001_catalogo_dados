@@ -53,8 +53,8 @@ describe("filterSchemas", () => {
 
 describe("filterTables", () => {
   const tables: Table[] = [
-    { name: "IMPORTADOR", type: "Tabela", description: "Dado sensível", classification: "Restrito" },
-    { name: "V_IMP", type: "View", description: null, classification: "Não classificado" },
+    { name: "IMPORTADOR", type: "Tabela", description: "Dado sensível", classification: "Restrito", conformidade: null },
+    { name: "V_IMP", type: "View", description: null, classification: "Não classificado", conformidade: null },
   ]
 
   it("busca no nome e na descrição", () => {

@@ -3,6 +3,17 @@
 // camelCase — a conversão acontece aqui.
 import { useQuery } from "@tanstack/react-query"
 import { api } from "@/lib/api"
+import {
+  mapAvaliacao,
+  mapConformidade,
+  mapDocumentacao,
+  type Avaliacao,
+  type AvaliacaoRaw,
+  type Conformidade,
+  type ConformidadeRaw,
+  type Documentacao,
+  type DocumentacaoRaw,
+} from "./nomenclatura"
 
 interface SaudeRaw {
   percentual: number
@@ -14,6 +25,8 @@ interface TableRaw {
   type: string
   description: string | null
   classification: string
+  // Só vem preenchida na lista de tabelas do schema.
+  conformidade: ConformidadeRaw | null
 }
 
 interface ColumnRaw {
@@ -27,6 +40,8 @@ interface ColumnRaw {
   is_primary_key: boolean
   domain: string
   completude: SaudeRaw | null
+  // null nas colunas de auditoria e nos schemas LEGADO.
+  conformidade: AvaliacaoRaw | null
 }
 
 interface TableSaudeRaw {
@@ -40,6 +55,8 @@ interface TableDetailRaw extends TableRaw {
   total_registros: number | null
   saude: SaudeRaw | null
   leitura_negada: boolean
+  conformidade: ConformidadeRaw
+  documentacao: DocumentacaoRaw
   columns: ColumnRaw[]
 }
 
@@ -61,6 +78,8 @@ export interface Table {
   type: string
   description: string | null
   classification: string
+  /** Só preenchida na lista de tabelas do schema. */
+  conformidade: Conformidade | null
 }
 
 export interface Column {
@@ -74,6 +93,8 @@ export interface Column {
   isPrimaryKey: boolean
   domain: string
   completude: Saude | null
+  /** null nas colunas de auditoria e nos schemas LEGADO. */
+  conformidade: Avaliacao | null
 }
 
 export interface TableSaude {
@@ -87,6 +108,8 @@ export interface TableDetail extends Table {
   saude: Saude | null
   /** Sem permissão de SELECT: a estrutura aparece, a saúde não. */
   leituraNegada: boolean
+  conformidade: Conformidade
+  documentacao: Documentacao
   columns: Column[]
 }
 
@@ -108,6 +131,7 @@ function mapTable(raw: TableRaw): Table {
     type: raw.type,
     description: raw.description,
     classification: raw.classification,
+    conformidade: raw.conformidade ? mapConformidade(raw.conformidade) : null,
   }
 }
 
@@ -118,6 +142,8 @@ export function mapTableSaude(raw: TableSaudeRaw): TableSaude {
 export function mapTableDetail(raw: TableDetailRaw): TableDetail {
   return {
     ...mapTable(raw),
+    conformidade: mapConformidade(raw.conformidade),
+    documentacao: mapDocumentacao(raw.documentacao),
     totalRegistros: raw.total_registros,
     saude: raw.saude ? mapSaude(raw.saude) : null,
     leituraNegada: raw.leitura_negada,
@@ -133,6 +159,7 @@ export function mapTableDetail(raw: TableDetailRaw): TableDetail {
       isPrimaryKey: c.is_primary_key,
       domain: c.domain,
       completude: c.completude ? mapSaude(c.completude) : null,
+      conformidade: c.conformidade ? mapAvaliacao(c.conformidade) : null,
     })),
   }
 }
