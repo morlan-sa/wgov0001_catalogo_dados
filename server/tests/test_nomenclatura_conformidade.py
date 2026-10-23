@@ -155,3 +155,35 @@ def test_resumo_nao_aplicavel():
     assert resumo.aplicavel is False
     assert resumo.total == 0
     assert resumo.percentual is None
+
+
+@pytest.mark.parametrize("tamanho", [256, 1500])
+def test_descricao_varchar_com_tamanho_de_algum_dominio_e_conforme(tamanho: int):
+    assert avaliar_coluna("DS_OBS", "VARCHAR", tamanho).resultado == "conforme"
+
+
+@pytest.mark.parametrize("tamanho", [50, 300])
+def test_descricao_varchar_com_tamanho_fora_dos_dominios_e_aviso(tamanho: int):
+    r = avaliar_coluna("DS_OBS", "VARCHAR", tamanho)
+    assert r.resultado == "aviso"
+    assert r.sugestao is not None
+    assert r.sugestao.dominio in {"DS_C", "DS_L"}
+    assert "256" in r.problemas[0] or "1500" in r.problemas[0]
+
+
+def test_descricao_varchar_aviso_aponta_dominio_mais_proximo():
+    assert avaliar_coluna("DS_OBS", "VARCHAR", 300).sugestao.dominio == "DS_C"  # type: ignore[union-attr]
+    assert avaliar_coluna("DS_OBS", "VARCHAR", 1400).sugestao.dominio == "DS_L"  # type: ignore[union-attr]
+
+
+@pytest.mark.parametrize("tamanho", [None, 0])
+@pytest.mark.parametrize("tipo", ["TEXT", "text", "CLOB"])
+def test_descricao_texto_ilimitado_e_conforme(tipo: str, tamanho: int | None):
+    assert avaliar_coluna("DS_OBS", tipo, tamanho).resultado == "conforme"
+
+
+@pytest.mark.parametrize("tipo", ["text", "character varying"])
+def test_tamanho_zero_do_postgres_nao_e_comparado(tipo: str):
+    r = avaliar_coluna("NM_X", tipo, 0)
+    assert r.resultado == "conforme"
+    assert r.problemas == ()

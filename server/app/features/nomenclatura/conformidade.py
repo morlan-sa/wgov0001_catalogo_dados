@@ -114,6 +114,10 @@ def _casa_familia(familia: Familia, tamanho: int | None, dominio: DominioTipo) -
     return alvo == "booleano" and familia == "texto" and tamanho == 1
 
 
+def _tipo_sem_limite(tipo: str) -> bool:
+    return tipo.strip().lower().split("(")[0].strip() in {"text", "clob"}
+
+
 def _fora(problema: str, sugestao: Sugestao | None = None) -> Avaliacao:
     return Avaliacao("fora", (problema,), sugestao)
 
@@ -160,23 +164,36 @@ def avaliar_coluna(
             _sugestao_do_dominio(esperado),
         )
 
-    if familia != "texto" or tamanho is None:
+    # Tamanho só vale para texto limitado: 0/None (Postgres devolve 0 para
+    # varchar sem limite e text) e TEXT/CLOB não têm tamanho a comparar.
+    textuais = [d for d in mesma_familia if _familia_dominio(d) == "texto"]
+    if (
+        familia != "texto"
+        or not textuais
+        or tamanho is None
+        or tamanho <= 0
+        or _tipo_sem_limite(tipo)
+    ):
         return Avaliacao("conforme", (), None)
 
-    for dominio in mesma_familia:
-        escala = _escala_numerica(dominio)
-        if escala is None or escala == tamanho:
-            return Avaliacao("conforme", (), None)
+    com_escala = [(d, e) for d in textuais if (e := _escala_numerica(d)) is not None]
+    if any(escala == tamanho for _, escala in com_escala):
+        return Avaliacao("conforme", (), None)
 
-    esperado = mesma_familia[0]
-    return Avaliacao(
-        "aviso",
-        (
-            f"O tamanho {tamanho} difere do definido no domínio {esperado.codigo} "
-            f"({_escala_numerica(esperado)}).",
-        ),
-        _sugestao_do_dominio(esperado),
-    )
+    if not com_escala:
+        # Só domínio sem limite (TEXT): VARCHAR/CHAR limitado não se encaixa.
+        esperado = textuais[0]
+        problema = (
+            f"O domínio {esperado.codigo} é texto sem limite de tamanho, "
+            f"mas a coluna é limitada a {tamanho}."
+        )
+    else:
+        esperado, escala = min(com_escala, key=lambda par: abs(par[1] - tamanho))
+        problema = (
+            f"O tamanho {tamanho} difere do definido no domínio "
+            f"{esperado.codigo} ({escala})."
+        )
+    return Avaliacao("aviso", (problema,), _sugestao_do_dominio(esperado))
 
 
 def resumir(avaliacoes: Iterable[Avaliacao]) -> Resumo:
