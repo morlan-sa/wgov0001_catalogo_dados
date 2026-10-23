@@ -127,6 +127,9 @@ class Settings(BaseSettings):
     # abaixo disso → Atenção.
     COMPLETUDE_LIMIAR_EXCELENTE: int = 90
     COMPLETUDE_LIMIAR_BOM: int = 70
+    # Conformidade com a nomenclatura: peso de uma coluna em "aviso" no
+    # percentual (conforme vale 1, fora vale 0).
+    CONFORMIDADE_PESO_AVISO: float = 0.5
     # Colunas de auditoria/governança (metadados de controle do ETL, não
     # dado de negócio) ficam fora do cálculo de completude.
     AUDIT_COLUMNS: Annotated[tuple[str, ...], NoDecode] = (
