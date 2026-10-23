@@ -200,6 +200,7 @@ def _conformidade_out(resumo: Resumo) -> ConformidadeOut:
         fora=resumo.fora,
         total=resumo.total,
         percentual=resumo.percentual,
+        pontos=resumo.pontos,
     )
 
 

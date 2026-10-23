@@ -2,12 +2,14 @@ import pytest
 
 from app.config import settings
 from app.features.nomenclatura.conformidade import (
+    _FAMILIA_DO_DOMINIO,
     Avaliacao,
     avaliar_coluna,
     familia_do_tipo,
     resumir,
     resumo_nao_aplicavel,
 )
+from app.features.nomenclatura.regras import carregar_regras
 
 
 @pytest.mark.parametrize(
@@ -187,3 +189,24 @@ def test_tamanho_zero_do_postgres_nao_e_comparado(tipo: str):
     r = avaliar_coluna("NM_X", tipo, 0)
     assert r.resultado == "conforme"
     assert r.problemas == ()
+
+
+def test_todo_dominio_de_tipo_tem_familia_conhecida():
+    # Um domínio novo (ex.: DECIMAL) não pode virar "outro" em silêncio.
+    tipos = {d.tipo.upper() for d in carregar_regras().dominios_tipo.values()}
+    assert tipos
+    assert tipos <= set(_FAMILIA_DO_DOMINIO)
+
+
+def test_pontos_segue_o_peso_configurado(monkeypatch: pytest.MonkeyPatch):
+    avaliacoes = [_av("conforme"), _av("aviso"), _av("aviso"), _av("fora")]
+    monkeypatch.setattr(settings, "CONFORMIDADE_PESO_AVISO", 0.25)
+    resumo = resumir(avaliacoes)
+    assert resumo.pontos == 1.5
+    assert resumo.percentual == 38  # 1.5 / 4 * 100 = 37,5 -> 38
+    monkeypatch.setattr(settings, "CONFORMIDADE_PESO_AVISO", 1.0)
+    assert resumir(avaliacoes).pontos == 3.0
+
+
+def test_resumo_nao_aplicavel_tem_pontos_zero():
+    assert resumo_nao_aplicavel().pontos == 0.0

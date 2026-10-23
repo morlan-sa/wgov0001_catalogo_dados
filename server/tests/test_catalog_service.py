@@ -108,6 +108,7 @@ class TestListTablesComConformidade:
         assert pais.aplicavel is True
         assert (pais.conformes, pais.avisos, pais.fora, pais.total) == (1, 1, 1, 3)
         assert pais.percentual == 50  # (1 + 0.5 * 1) / 3 * 100
+        assert pais.pontos == 1.5
         assert (view.conformes, view.avisos, view.fora, view.total) == (1, 0, 0, 1)
         assert view.percentual == 100
         # uma consulta para as tabelas + UMA para as colunas do schema inteiro
@@ -338,6 +339,7 @@ class TestConformidadeEDocumentacao:
         assert c.aplicavel is True
         assert (c.conformes, c.avisos, c.fora, c.total) == (1, 1, 1, 3)
         assert c.percentual == 50  # (1 + 0.5 * 1) / 3 * 100
+        assert c.pontos == 1.5
 
     async def test_detalhe_legado_nao_aplicavel(self):
         columns = [_col("ID_PAIS"), _col("XX_FOO", "VARCHAR", 3)]
@@ -372,7 +374,13 @@ class TestConformidadeEDocumentacao:
         # `list_tables` já pode devolver `conformidade` (cache da lista com
         # resumo): o detalhe não pode quebrar com "multiple values".
         herdada = ConformidadeOut(
-            aplicavel=True, conformes=9, avisos=9, fora=9, total=27, percentual=9
+            aplicavel=True,
+            conformes=9,
+            avisos=9,
+            fora=9,
+            total=27,
+            percentual=9,
+            pontos=13.5,
         )
         tabela = _table("PAIS").model_copy(update={"conformidade": herdada})
         p1, p2, p3 = self._detalhe([_col("ID_PAIS")])

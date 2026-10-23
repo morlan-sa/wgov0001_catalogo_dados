@@ -84,6 +84,8 @@ class Resumo:
     fora: int
     total: int
     percentual: int | None
+    # conformes + peso * avisos: o front soma `pontos` entre tabelas, sem peso próprio.
+    pontos: float
 
 
 def _familia_dominio(dominio: DominioTipo) -> Familia:
@@ -206,15 +208,10 @@ def resumir(avaliacoes: Iterable[Avaliacao]) -> Resumo:
         else:
             fora += 1
     total = conformes + avisos + fora
-    percentual = (
-        round_half_up(
-            (conformes + settings.CONFORMIDADE_PESO_AVISO * avisos) / total * 100
-        )
-        if total
-        else None
-    )
-    return Resumo(True, conformes, avisos, fora, total, percentual)
+    pontos = conformes + settings.CONFORMIDADE_PESO_AVISO * avisos
+    percentual = round_half_up(pontos / total * 100) if total else None
+    return Resumo(True, conformes, avisos, fora, total, percentual, pontos)
 
 
 def resumo_nao_aplicavel() -> Resumo:
-    return Resumo(False, 0, 0, 0, 0, None)
+    return Resumo(False, 0, 0, 0, 0, None, 0.0)

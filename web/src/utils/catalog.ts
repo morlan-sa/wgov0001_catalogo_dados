@@ -43,10 +43,11 @@ export function columnType(c: Pick<Column, "type" | "length" | "scale">): string
 
 /**
  * Soma a conformidade das tabelas onde ela se aplica (LEGADO fica de fora).
- * Mesmo peso do backend: conforme 1, aviso 0,5, fora 0; arredonda .5 para cima.
+ * Soma os `pontos` que o backend já ponderou (o peso do aviso é configuração
+ * dele); arredonda .5 para cima.
  */
 export function somarConformidade(tables: Table[]): Conformidade {
-  const soma = { conformes: 0, avisos: 0, fora: 0, total: 0 }
+  const soma = { conformes: 0, avisos: 0, fora: 0, total: 0, pontos: 0 }
   let aplicavel = false
   for (const t of tables) {
     const c = t.conformidade
@@ -56,11 +57,10 @@ export function somarConformidade(tables: Table[]): Conformidade {
     soma.avisos += c.avisos
     soma.fora += c.fora
     soma.total += c.total
+    soma.pontos += c.pontos
   }
   const percentual =
-    soma.total > 0
-      ? Math.floor(((soma.conformes + 0.5 * soma.avisos) / soma.total) * 100 + 0.5)
-      : null
+    soma.total > 0 ? Math.floor((soma.pontos / soma.total) * 100 + 0.5) : null
   return { aplicavel, ...soma, percentual }
 }
 

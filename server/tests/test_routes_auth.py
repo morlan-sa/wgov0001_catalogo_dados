@@ -55,6 +55,7 @@ ROTAS = [
                     fora=0,
                     total=1,
                     percentual=100,
+                    pontos=1.0,
                 ),
             )
         ],
@@ -76,7 +77,13 @@ ROTAS = [
             total_registros=252,
             saude=SAUDE,
             conformidade=ConformidadeOut(
-                aplicavel=True, conformes=0, avisos=0, fora=0, total=0, percentual=None
+                aplicavel=True,
+                conformes=0,
+                avisos=0,
+                fora=0,
+                total=0,
+                percentual=None,
+                pontos=0.0,
             ),
             documentacao=DocumentacaoOut(percentual=None, documentadas=0, total=0),
             columns=[],

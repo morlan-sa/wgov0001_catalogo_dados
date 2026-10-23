@@ -84,7 +84,7 @@ describe("detalhe de tabela com conformidade e documentação", () => {
       type: "Tabela",
       description: "Clientes",
       classification: "Restrito",
-      conformidade: { aplicavel: true, conformes: 1, avisos: 1, fora: 0, total: 2, percentual: 75 },
+      conformidade: { aplicavel: true, conformes: 1, avisos: 1, fora: 0, total: 2, percentual: 75, pontos: 1.5 },
       documentacao: { percentual: 50, documentadas: 1, total: 2 },
       schema_name: "CUR_COM",
       total_registros: 10,
@@ -127,6 +127,7 @@ describe("detalhe de tabela com conformidade e documentação", () => {
       fora: 0,
       total: 2,
       percentual: 75,
+      pontos: 1.5,
     })
     expect(detail.documentacao).toEqual({ percentual: 50, documentadas: 1, total: 2 })
     expect(detail.columns[0].conformidade).toEqual({

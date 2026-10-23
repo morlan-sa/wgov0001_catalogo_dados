@@ -94,7 +94,8 @@ describe("somarConformidade", () => {
     aplicavel: boolean,
     conformes: number,
     avisos: number,
-    fora: number
+    fora: number,
+    peso = 0.5
   ): Conformidade => ({
     aplicavel,
     conformes,
@@ -102,6 +103,7 @@ describe("somarConformidade", () => {
     fora,
     total: conformes + avisos + fora,
     percentual: null,
+    pontos: conformes + peso * avisos,
   })
   const tabela = (name: string, conformidade: Conformidade | null): Table => ({
     name,
@@ -125,7 +127,16 @@ describe("somarConformidade", () => {
       fora: 3,
       total: 8,
       percentual: 56, // (4 + 0,5) / 8 = 56,25 %
+      pontos: 4.5,
     })
+  })
+
+  it("usa `pontos` do backend, sem peso próprio (peso 0,25 configurado)", () => {
+    // 2 conformes + 4 avisos de peso 0,25 = 3 pontos de 6 -> 50 %.
+    // Com um peso fixo de 0,5 daria (2 + 2) / 6 = 67 %.
+    const r = somarConformidade([tabela("A", conf(true, 2, 4, 0, 0.25))])
+    expect(r.pontos).toBe(3)
+    expect(r.percentual).toBe(50)
   })
 
   it("arredonda .5 para cima, como o backend", () => {
@@ -141,6 +152,7 @@ describe("somarConformidade", () => {
       fora: 0,
       total: 0,
       percentual: null,
+      pontos: 0,
     })
   })
 

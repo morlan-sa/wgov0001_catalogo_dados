@@ -19,6 +19,7 @@ const CONF_ZERO = {
   fora: 0,
   total: 0,
   percentual: null,
+  pontos: 0,
 }
 
 function coluna(name: string, conformidade: unknown) {
@@ -50,6 +51,7 @@ const DETALHE_RAW = {
     fora: 1,
     total: 2,
     percentual: 50,
+    pontos: 1,
   },
   documentacao: { percentual: 50, documentadas: 1, total: 2 },
   total_registros: 1200,
@@ -188,6 +190,7 @@ describe("Lista de tabelas do schema — conformidade", () => {
         fora: 0,
         total: 4,
         percentual: 88,
+        pontos: 3.5,
       }),
       tabela("PRODUTO", {
         aplicavel: true,
@@ -196,6 +199,7 @@ describe("Lista de tabelas do schema — conformidade", () => {
         fora: 3,
         total: 4,
         percentual: 25,
+        pontos: 1,
       }),
       tabela("SEM_COLUNAS", {
         aplicavel: true,
@@ -204,6 +208,7 @@ describe("Lista de tabelas do schema — conformidade", () => {
         fora: 0,
         total: 0,
         percentual: null,
+        pontos: 0,
       }),
     ])
 

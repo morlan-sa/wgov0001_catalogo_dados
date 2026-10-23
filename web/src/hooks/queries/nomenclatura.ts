@@ -29,6 +29,8 @@ export interface Conformidade {
   fora: number
   total: number
   percentual: number | null
+  // conformes + peso * avisos, calculado no backend (o peso é configurável).
+  pontos: number
 }
 
 export interface Documentacao {
@@ -60,6 +62,7 @@ export function mapConformidade(raw: ConformidadeRaw): Conformidade {
     fora: raw.fora,
     total: raw.total,
     percentual: raw.percentual,
+    pontos: raw.pontos,
   }
 }
 

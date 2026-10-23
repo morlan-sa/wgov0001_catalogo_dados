@@ -17,6 +17,7 @@ class ConformidadeOut(BaseModel):
     fora: int
     total: int
     percentual: int | None
+    pontos: float
 
 
 class TableOut(BaseModel):
