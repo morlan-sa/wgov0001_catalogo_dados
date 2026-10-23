@@ -15,8 +15,8 @@ from app.features.catalog.reference import (
     DOMINIO_NAO_CLASSIFICADO_CODE,
     DOMINIOS_NEGOCIO,
     NAO_CLASSIFICADO,
-    PREFIXO_DOMINIOS,
 )
+from app.features.nomenclatura.regras import carregar_regras
 
 # `CLASSIFICA[^:]*` tolera acento corrompido (mojibake) em "Classificação".
 _CLASSIFICACAO_RE = re.compile(
@@ -57,7 +57,8 @@ def infer_classificacao(remarks: str | None) -> str:
 
 
 def infer_prefix_domain(column_name: str) -> str:
-    return PREFIXO_DOMINIOS.get(column_name.upper().split("_")[0], NAO_CLASSIFICADO)
+    prefixo = carregar_regras().prefixos.get(column_name.upper().split("_")[0])
+    return prefixo.significado if prefixo else NAO_CLASSIFICADO
 
 
 def infer_completude(percentual: int) -> str:

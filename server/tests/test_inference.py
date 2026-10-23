@@ -57,7 +57,17 @@ class TestColunaECompletude:
     def test_prefixo_de_coluna_cadastrado(self):
         assert infer_prefix_domain("ID_IMPORTADOR") == "Identificador"
         assert infer_prefix_domain("NR_CNPJ") == "Número"
-        assert infer_prefix_domain("VR_TOTAL") == "Valor Monetário"
+        assert infer_prefix_domain("VR_TOTAL") == "Valor monetário"
+
+    def test_rotulo_vem_das_regras_como_escrito_na_fonte(self):
+        assert infer_prefix_domain("SG_UF") == "Não classificado"
+        assert infer_prefix_domain("VL_PESO") == "Valor numérico"
+        assert infer_prefix_domain("ST_PEDIDO") == "Situação/Status"
+        assert infer_prefix_domain("pc_desconto") == "Porcentagem"
+
+    def test_prefixos_novos_leg_e_vlx_sao_reconhecidos(self):
+        assert infer_prefix_domain("LEG_CODIGO") == "Legado"
+        assert infer_prefix_domain("VLX_MARGEM") == "Valor calculado"
 
     def test_prefixo_desconhecido_nao_e_classificado(self):
         assert infer_prefix_domain("FOOBAR_XYZ") == "Não classificado"

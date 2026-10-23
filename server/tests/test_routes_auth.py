@@ -5,6 +5,7 @@ e a proteção."""
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -32,7 +33,7 @@ SCHEMA_COM = SchemaOut(
 )
 SCHEMA_REF = SCHEMA_COM.model_copy(update={"schema_name": "CUR_REF"})
 
-# (caminho, serviço mocado, valor devolvido)
+# (caminho, serviço mocado ou None se a rota não faz I/O, valor devolvido)
 ROTAS = [
     ("/api/schemas", "app.features.schemas.service.list_schemas", [SCHEMA_COM]),
     ("/api/catalog/schemas", "app.features.schemas.service.list_schemas", [SCHEMA_COM]),
@@ -114,6 +115,8 @@ ROTAS = [
         "app.features.domains.service.list_domains_with_usage",
         [DomainOut(code="COM", name="Comercial", schema_count=2, object_count=4)],
     ),
+    # Regras em memória (sem I/O): nada a mocar.
+    ("/api/nomenclatura", None, None),
 ]
 
 
@@ -126,7 +129,8 @@ async def test_sem_sessao_retorna_401(caminho):
 
 @pytest.mark.parametrize(("caminho", "alvo", "retorno"), ROTAS)
 async def test_com_sessao_retorna_200(caminho, alvo, retorno):
-    with patch(alvo, AsyncMock(return_value=retorno)):
+    mock = patch(alvo, AsyncMock(return_value=retorno)) if alvo else nullcontext()
+    with mock:
         async with authenticated_client() as client:
             r = await client.get(caminho)
     assert r.status_code == 200
