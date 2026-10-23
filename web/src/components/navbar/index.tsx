@@ -8,6 +8,7 @@ import {
   Layers01Icon,
   Menu01Icon,
   ScanIcon,
+  SpellCheckIcon,
 } from "@hugeicons/core-free-icons"
 import {
   Sidebar as SidebarRoot,
@@ -66,6 +67,9 @@ export const Navbar = memo(function Navbar() {
           </NavItem>
           <NavItem to="/dominios" icon={Layers01Icon}>
             Domínios
+          </NavItem>
+          <NavItem to="/nomenclatura" icon={SpellCheckIcon}>
+            Nomenclatura
           </NavItem>
         </SidebarGroup>
       </SidebarContent>

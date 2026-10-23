@@ -13,6 +13,7 @@ import { CatalogoTabela } from "@/pages/catalogo-tabela"
 import { Dashboard } from "@/pages/dashboard"
 import { Dominio } from "@/pages/dominio"
 import { Dominios } from "@/pages/dominios"
+import { Nomenclatura } from "@/pages/nomenclatura"
 import { NotFound } from "@/pages/not-found"
 import { Scanner } from "@/pages/scanner"
 
@@ -60,6 +61,11 @@ const router = createBrowserRouter([
             path: "dominios/:code",
             element: <Dominio />,
             handle: { title: "Domínio de Negócio" },
+          },
+          {
+            path: "nomenclatura",
+            element: <Nomenclatura />,
+            handle: { title: "Padrões de Nomenclatura" },
           },
         ],
       },
