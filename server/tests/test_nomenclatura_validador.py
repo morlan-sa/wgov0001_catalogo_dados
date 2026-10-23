@@ -91,6 +91,9 @@ def test_ambiguo_nao_assume_nome_sugerido(nome):
         ("NM_X", "DECIMAL(10,2)", None, "fora"),
         ("CD_X", "VARCHAR(abc)", None, None),
         ("CD_X", "VARCHAR()", None, None),
+        ("CD_X", "VARCHAR(²)", None, None),  # dígito sobrescrito: isdigit() é True
+        ("CD_X", "VARCHAR(" + "9" * 5000 + ")", None, None),  # > 4300 dígitos
+        ("CD_X", "VARCHAR(99999999999)", None, None),  # absurdo: não é tamanho
         ("CD_X", "VARCHAR(50)", 20, "conforme"),  # tamanho explícito vence
     ],
 )

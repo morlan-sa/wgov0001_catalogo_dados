@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from tests.helpers import anonymous_client, authenticated_client
 
 
@@ -74,6 +76,15 @@ async def test_validar_exige_nome():
     async with authenticated_client() as client:
         r = await client.post("/api/nomenclatura/validar", json={"tipo": "INTEGER"})
     assert r.status_code == 422
+
+
+@pytest.mark.parametrize("tipo", ["VARCHAR(²)", "VARCHAR(" + "9" * 5000 + ")"])
+async def test_validar_tipo_absurdo_nao_gera_500(tipo):
+    async with authenticated_client() as client:
+        r = await client.post(
+            "/api/nomenclatura/validar", json={"nome": "CD_X", "tipo": tipo}
+        )
+    assert r.status_code == 200
 
 
 async def test_validar_sem_sessao_retorna_401():

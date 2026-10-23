@@ -8,6 +8,7 @@ from app.features.nomenclatura.geracao import normalizar_termo
 from app.features.nomenclatura.regras import Ambiguidade, carregar_regras
 
 _ESPACOS = re.compile(r"\s+")
+_TAMANHO = re.compile(r"[0-9]{1,9}")
 
 
 @dataclass(frozen=True)
@@ -42,7 +43,9 @@ def _tipo_e_tamanho(
     if not abre or not tipo.rstrip().endswith(")"):
         return tipo, tamanho
     primeiro = resto.rstrip().rstrip(")").split(",")[0].strip()
-    if not primeiro.isdigit():
+    # `str.isdigit()` aceita dígitos sobrescritos ("²") e `int()` recusa mais de
+    # 4300 dígitos: só ASCII e até 9 dígitos contam como tamanho.
+    if not _TAMANHO.fullmatch(primeiro):
         return tipo, tamanho
     return base.strip(), int(primeiro)
 
