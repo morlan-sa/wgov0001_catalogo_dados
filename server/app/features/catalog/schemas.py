@@ -8,13 +8,6 @@ class SaudeOut(BaseModel):
     classificacao: str
 
 
-class TableOut(BaseModel):
-    name: str
-    type: str
-    description: str | None
-    classification: str
-
-
 class ConformidadeOut(BaseModel):
     """Resumo de conformidade com a nomenclatura (tabela ou schema)."""
 
@@ -24,6 +17,15 @@ class ConformidadeOut(BaseModel):
     fora: int
     total: int
     percentual: int | None
+
+
+class TableOut(BaseModel):
+    name: str
+    type: str
+    description: str | None
+    classification: str
+    # Só preenchido na lista de tabelas do schema; `list_tables` não calcula.
+    conformidade: ConformidadeOut | None = None
 
 
 class DocumentacaoOut(BaseModel):
@@ -60,7 +62,8 @@ class TableDetailOut(TableOut):
     total_registros: int | None
     saude: SaudeOut | None
     leitura_negada: bool = False
-    conformidade: ConformidadeOut
+    # Obrigatório no detalhe (a lista é que a deixa opcional).
+    conformidade: ConformidadeOut  # pyright: ignore
     documentacao: DocumentacaoOut
     columns: list[ColumnOut]
 

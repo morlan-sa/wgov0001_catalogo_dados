@@ -41,13 +41,21 @@ ROTAS = [
     ("/api/catalog/schemas", "app.features.schemas.service.list_schemas", [SCHEMA_COM]),
     (
         "/api/catalog/schemas/CUR_COM/tables",
-        "app.features.catalog.service.list_tables",
+        "app.features.catalog.service.list_tables_com_conformidade",
         [
             TableOut(
                 name="IMPORTADOR",
                 type="Tabela",
                 description=None,
                 classification="Restrito",
+                conformidade=ConformidadeOut(
+                    aplicavel=True,
+                    conformes=1,
+                    avisos=0,
+                    fora=0,
+                    total=1,
+                    percentual=100,
+                ),
             )
         ],
     ),

@@ -82,6 +82,27 @@ class TestDialeto:
         assert '"COLNO"' in dialect.POSTGRES.columns_sql
 
 
+class TestColunasDoSchema:
+    def test_colunas_do_schema_sql_db2(self):
+        sql = dialect.DB2.colunas_do_schema_sql
+        assert sql.count("?") == 1  # só o schema
+        assert "SYSCAT.COLUMNS" in sql and "SYSCAT.TABLES" in sql
+        assert "TYPE IN ('T', 'V')" in sql
+        for coluna in ("TABNAME", "COLNAME", "TYPENAME", "LENGTH", "SCALE"):
+            assert f"C.{coluna}" in sql
+
+    def test_colunas_do_schema_sql_postgres(self):
+        sql = dialect.POSTGRES.colunas_do_schema_sql
+        assert sql.count("?") == 1  # só o schema
+        assert "SYSCAT" not in sql
+        for alias in ("TABNAME", "COLNAME", "TYPENAME", "LENGTH", "SCALE"):
+            assert f'AS "{alias}"' in sql
+        assert "format_type(a.atttypid, NULL)" in sql
+        assert "c.relname =" not in sql  # sem filtro de tabela
+        assert "c.relkind IN ('r', 'p', 'v', 'm')" in sql
+        assert "NOT c.relispartition" in sql
+
+
 class TestServicoComPostgres:
     async def test_completude_usa_identificadores_na_caixa_original(
         self, fonte_postgres

@@ -27,6 +27,9 @@ class Dialect:
     schemas_sql: str
     tables_sql: str
     columns_sql: str
+    # Colunas de TODAS as tabelas/views de um schema numa consulta só (param:
+    # schema; linhas TABNAME, COLNAME, TYPENAME, LENGTH, SCALE).
+    colunas_do_schema_sql: str
     pk_sql: str
     normalize: Callable[[str], str]
     # Expressão que conta uma coluna de texto só quando não é vazia/em branco.
@@ -125,6 +128,13 @@ DB2 = Dialect(
     WHERE TABSCHEMA = ? AND TABNAME = ?
     ORDER BY COLNO
 """,
+    colunas_do_schema_sql="""
+    SELECT C.TABNAME, C.COLNAME, C.TYPENAME, C.LENGTH, C.SCALE
+    FROM SYSCAT.COLUMNS C
+    JOIN SYSCAT.TABLES T ON T.TABSCHEMA = C.TABSCHEMA AND T.TABNAME = C.TABNAME
+    WHERE C.TABSCHEMA = ? AND T.TYPE IN ('T', 'V')
+    ORDER BY C.TABNAME, C.COLNO
+""",
     pk_sql="""
     SELECT K.COLNAME
     FROM SYSCAT.TABCONST T
@@ -187,6 +197,29 @@ POSTGRES = Dialect(
     JOIN pg_type t ON t.oid = a.atttypid
     WHERE n.nspname = ? AND c.relname = ? AND a.attnum > 0 AND NOT a.attisdropped
     ORDER BY a.attnum
+""",
+    colunas_do_schema_sql=f"""
+    SELECT
+      c.relname AS "TABNAME",
+      a.attname AS "COLNAME",
+      format_type(a.atttypid, NULL) AS "TYPENAME",
+      CASE
+        WHEN a.atttypmod > 0 AND t.typname IN ('varchar', 'bpchar')
+          THEN a.atttypmod - 4
+        WHEN a.atttypmod > 0 AND t.typname = 'numeric'
+          THEN ((a.atttypmod - 4) >> 16) & 65535
+        ELSE 0
+      END AS "LENGTH",
+      CASE
+        WHEN a.atttypmod > 0 AND t.typname = 'numeric' THEN (a.atttypmod - 4) & 65535
+        ELSE 0
+      END AS "SCALE"
+    FROM pg_attribute a
+    JOIN pg_class c ON c.oid = a.attrelid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    JOIN pg_type t ON t.oid = a.atttypid
+    WHERE n.nspname = ? AND {_PG_OBJETOS} AND a.attnum > 0 AND NOT a.attisdropped
+    ORDER BY c.relname, a.attnum
 """,
     pk_sql="""
     SELECT a.attname AS "COLNAME"

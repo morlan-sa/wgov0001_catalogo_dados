@@ -47,7 +47,9 @@ async def listar_schemas(
 
 @router.get("/schemas/{schema_name}/tables", response_model=list[TableOut])
 async def listar_tabelas(schema_name: str, _: CurrentUser = Depends(get_current_user)):
-    return await catalog_service.list_tables(get_dialect().normalize(schema_name))
+    return await catalog_service.list_tables_com_conformidade(
+        get_dialect().normalize(schema_name)
+    )
 
 
 @router.get("/schemas/{schema_name}/tables/{table}/saude", response_model=TableSaudeOut)

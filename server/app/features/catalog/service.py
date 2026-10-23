@@ -220,6 +220,31 @@ def _avaliar_conformidade(
     return _conformidade_out(resumir(avaliacoes))
 
 
+@ttl_cache("CATALOG_CACHE_TTL_SECONDS")
+async def list_tables_com_conformidade(schema_name: str) -> list[TableOut]:
+    """`list_tables` + o resumo de conformidade de cada tabela, com UMA consulta
+    extra para as colunas do schema inteiro (não uma por tabela)."""
+    tables = await list_tables(schema_name)
+    if infer_camada(schema_name) == "LEGADO":
+        nao_aplicavel = _conformidade_out(resumo_nao_aplicavel())
+        for table in tables:
+            table.conformidade = nao_aplicavel
+        return tables
+
+    rows = await query(get_dialect().colunas_do_schema_sql, [schema_name])
+    avaliacoes: dict[str, list[Avaliacao]] = {}
+    for row in rows:
+        nome = row["COLNAME"].strip()
+        if is_audit_column(nome):
+            continue
+        avaliacoes.setdefault(row["TABNAME"].strip(), []).append(
+            avaliar_coluna(nome, row["TYPENAME"].strip(), row["LENGTH"])
+        )
+    for table in tables:
+        table.conformidade = _conformidade_out(resumir(avaliacoes.get(table.name, [])))
+    return tables
+
+
 def _calcular_documentacao(columns: list[ColumnOut]) -> DocumentacaoOut:
     negocio = [c for c in columns if not is_audit_column(c.name)]
     documentadas = sum(1 for c in negocio if c.description and c.description.strip())
@@ -247,7 +272,7 @@ async def get_table_detail(schema_name: str, table: str) -> TableDetailOut:
         # Metadados são legíveis mesmo sem SELECT na tabela: mostra a
         # estrutura e só marca que a saúde não pôde ser medida.
         return TableDetailOut(
-            **table_info.model_dump(),
+            **table_info.model_dump(exclude={"conformidade"}),
             schema_name=schema_name,
             total_registros=None,
             saude=None,
@@ -260,7 +285,7 @@ async def get_table_detail(schema_name: str, table: str) -> TableDetailOut:
         column.completude = completude.por_coluna.get(column.name)
 
     return TableDetailOut(
-        **table_info.model_dump(),
+        **table_info.model_dump(exclude={"conformidade"}),
         schema_name=schema_name,
         total_registros=completude.total_registros,
         saude=completude.saude,

@@ -11,7 +11,7 @@ from fastapi import HTTPException
 from app.config import settings
 from app.db.catalog_db import CatalogPermissionError
 from app.features.catalog import service
-from app.features.catalog.schemas import ColumnOut
+from app.features.catalog.schemas import ColumnOut, ConformidadeOut
 
 _TABLES = [
     {
@@ -70,6 +70,84 @@ class TestListTables:
     async def test_schema_sem_tabelas_devolve_lista_vazia(self):
         with _db2(**{"SYSCAT.TABLES": []}):
             assert await service.list_tables("NAO_EXISTE") == []
+
+
+def _linha_coluna(tabela: str, coluna: str, tipo: str = "BIGINT", length: int = 8):
+    return {
+        "TABNAME": tabela,
+        "COLNAME": coluna,
+        "TYPENAME": tipo,
+        "LENGTH": length,
+        "SCALE": 0,
+    }
+
+
+class TestListTablesComConformidade:
+    async def test_lista_traz_resumo_por_tabela(self, monkeypatch):
+        monkeypatch.setattr(settings, "CONFORMIDADE_PESO_AVISO", 0.5)
+        colunas = [
+            # PAIS: conforme + aviso (tamanho difere de CD_VAR) + fora; auditoria fora
+            _linha_coluna("PAIS  ", "ID_PAIS "),
+            _linha_coluna("PAIS", "CD_PAIS", "VARCHAR", 3),
+            _linha_coluna("PAIS", "XX_FOO", "VARCHAR", 3),
+            _linha_coluna("PAIS", "DT_ATU_DADOS", "TIMESTAMP", 10),
+            # V_PAIS: só conforme
+            _linha_coluna("V_PAIS", "ID_PAIS"),
+        ]
+        tabelas = [
+            {"TABNAME": "PAIS", "TYPE": "T", "REMARKS": None},
+            {"TABNAME": "V_PAIS", "TYPE": "V", "REMARKS": None},
+        ]
+        fake = AsyncMock(side_effect=[tabelas, colunas])
+        with patch.object(service, "query", fake):
+            result = await service.list_tables_com_conformidade("CUR_REF")
+
+        assert [t.name for t in result] == ["PAIS", "V_PAIS"]
+        pais, view = (t.conformidade for t in result)
+        assert pais is not None and view is not None
+        assert pais.aplicavel is True
+        assert (pais.conformes, pais.avisos, pais.fora, pais.total) == (1, 1, 1, 3)
+        assert pais.percentual == 50  # (1 + 0.5 * 1) / 3 * 100
+        assert (view.conformes, view.avisos, view.fora, view.total) == (1, 0, 0, 1)
+        assert view.percentual == 100
+        # uma consulta para as tabelas + UMA para as colunas do schema inteiro
+        assert fake.await_count == 2
+        sql, params = fake.await_args_list[1].args
+        assert "SYSCAT.COLUMNS" in sql
+        assert params == ["CUR_REF"]
+
+    async def test_tabela_sem_colunas_ou_so_auditoria_nao_divide_por_zero(self):
+        tabelas = [
+            {"TABNAME": "VAZIA", "TYPE": "T", "REMARKS": None},
+            {"TABNAME": "AUDIT", "TYPE": "T", "REMARKS": None},
+        ]
+        colunas = [_linha_coluna("AUDIT", "DT_ATU_DADOS", "TIMESTAMP", 10)]
+        with patch.object(service, "query", AsyncMock(side_effect=[tabelas, colunas])):
+            result = await service.list_tables_com_conformidade("CUR_REF")
+
+        for t in result:
+            assert t.conformidade is not None
+            assert t.conformidade.aplicavel is True
+            assert t.conformidade.total == 0
+            assert t.conformidade.percentual is None
+
+    async def test_lista_legado_nao_aplicavel(self):
+        tabelas = [{"TABNAME": "PAIS", "TYPE": "T", "REMARKS": None}]
+        fake = AsyncMock(side_effect=[tabelas])
+        with patch.object(service, "query", fake):
+            result = await service.list_tables_com_conformidade("DB2INST1")
+
+        c = result[0].conformidade
+        assert c is not None
+        assert c.aplicavel is False
+        assert (c.conformes, c.avisos, c.fora, c.total) == (0, 0, 0, 0)
+        assert c.percentual is None
+        fake.assert_awaited_once()  # nem consulta as colunas
+
+    async def test_list_tables_continua_sem_conformidade(self):
+        with _db2(**{"SYSCAT.TABLES": _TABLES}):
+            tables = await service.list_tables("CUR_COM")
+        assert all(t.conformidade is None for t in tables)
 
 
 class TestListColumns:
@@ -289,6 +367,25 @@ class TestConformidadeEDocumentacao:
         assert detail.documentacao.total == 0
         assert detail.documentacao.documentadas == 0
         assert detail.documentacao.percentual is None
+
+    async def test_detalhe_nao_duplica_conformidade_herdada_da_lista(self):
+        # `list_tables` já pode devolver `conformidade` (cache da lista com
+        # resumo): o detalhe não pode quebrar com "multiple values".
+        herdada = ConformidadeOut(
+            aplicavel=True, conformes=9, avisos=9, fora=9, total=27, percentual=9
+        )
+        tabela = _table("PAIS").model_copy(update={"conformidade": herdada})
+        p1, p2, p3 = self._detalhe([_col("ID_PAIS")])
+        with (
+            p1,
+            p2,
+            p3,
+            patch.object(service, "list_tables", AsyncMock(return_value=[tabela])),
+        ):
+            detail = await service.get_table_detail("CUR_REF", "PAIS")
+
+        # vale a conformidade recalculada das colunas, não a herdada
+        assert (detail.conformidade.conformes, detail.conformidade.total) == (1, 1)
 
     async def test_leitura_negada_mantem_conformidade(self):
         columns = [
