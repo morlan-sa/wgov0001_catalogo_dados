@@ -1,0 +1,42 @@
+/* @morlan/ui/styles.css traz tokens brutos de design (@theme, :root,
+   .dark, @custom-variant dark — não processados, para que nosso próprio
+   build Tailwind os absorva e gere classes para tokens que usamos mas
+   nenhum componente da lib usa, ex.: bg-warning-400, dark:text-success-400),
+   mais o reset compilado de @layer base envolvido em "morlan-ui", mais as
+   classes utilitárias/de componente compiladas SOLTAS (mescladas na nossa
+   própria camada "utilities").
+   - "morlan-ui" fica ACIMA de "base" — o @layer base do @morlan/ui inclui
+     um reset no seletor universal (*{border-color:var(--border);outline-color:
+     var(--ring)}), colidindo com o próprio preflight do Tailwind
+     (*{border: 0 solid}, especificidade igual, ambos no seletor
+     universal). Sem "base" no pin, esse empate passa a depender da ordem
+     de import, e border-color vira silenciosamente currentColor em vez de
+     var(--border).
+   - Classes utilitárias/de componente deliberadamente NÃO são envolvidas
+     em camada: camadas CSS ignoram especificidade por completo, então
+     envolvê-las faria uma classe simples e não condicional que usamos em
+     qualquer lugar (ex.: bg-background) vencer incondicionalmente contra
+     uma classe condicional MAIS específica de um componente da lib (ex.:
+     data-[state=checked]:bg-primary do Checkbox), quebrando
+     silenciosamente o estado checked/hover/disabled/aria-invalid/dark de
+     qualquer componente que compartilhe um token semântico conosco.
+     Deixá-las soltas permite que especificidade normal resolva isso
+     corretamente. O preço: no raro empate de especificidade IGUAL entre
+     duas classes idênticas usadas coincidentemente por nós e pela lib
+     (ex.: .flex-col), a ordem de import decide — por isso
+     @morlan/ui/styles.css PRECISA vir antes de "tailwindcss" abaixo.
+   O pin de camada precisa ser declarado antes de qualquer @import. */
+@layer base, morlan-ui;
+@import "@morlan/ui/styles.css";
+@import "tailwindcss";
+
+/*
+  O Radix Dialog aplica body { pointer-events: none } quando um modal está
+  aberto. Os popovers de Select do @morlan/ui são portalizados para o <body>
+  como filhos diretos com position:fixed + z-index:9999 inline, herdando assim
+  o pointer-events desabilitado e tornando-se não interativos. Este trecho
+  restaura a interatividade.
+*/
+body > [style*="z-index: 9999"] {
+  pointer-events: auto;
+}

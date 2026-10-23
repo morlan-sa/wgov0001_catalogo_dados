@@ -1,0 +1,68 @@
+[project]
+name = "wgov0001_catalogo_dados-server"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy[asyncio]>=2.0",
+    # Usa o repositório de certificados do SO (tem a Morlan-CA que assina o Keycloak)
+    "truststore>=0.10",
+    "asyncpg>=0.30",
+    "psycopg2-binary>=2.9",
+    "pydantic[email]>=2.0",
+    "pydantic-settings>=2.0",
+    "alembic>=1.18.4",
+    "morlan-access-lib>=2.1.0",
+    "dh-helper-log[db]",
+    "dh-helper-fastapi",
+    # Dependência forte do próprio dh-helper-log (não é público, só existe
+    # no CodeArtifact) — o índice `codeartifact` é `explicit = true`, então
+    # só é consultado para pacotes listados em [tool.uv.sources] abaixo, não
+    # transitivamente. Todo pacote interno da Morlan que precisa resolver
+    # de lá tem que ser listado explicitamente, mesmo os que não importamos
+    # diretamente.
+    "dh-helper-json",
+    "ibm-db>=3.3.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "httpx>=0.27",
+    "ruff>=0.15",
+    "pyright>=1.1",
+]
+
+[[tool.uv.index]]
+name = "codeartifact"
+url = "https://morlan-537528034206.d.codeartifact.us-east-1.amazonaws.com/pypi/python/simple/"
+explicit = true
+
+[tool.uv.sources]
+morlan-access-lib = { index = "codeartifact" }
+dh-helper-log = { index = "codeartifact" }
+dh-helper-fastapi = { index = "codeartifact" }
+dh-helper-json = { index = "codeartifact" }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.pyright]
+# `include` (lista de permissão), não só uma varredura padrão mais ampla —
+# o shim de uma instalação editable sob .venv/site-packages fica alcançável
+# de outra forma, o que já mandou o pyright para um travamento de horas
+# perseguindo ele. Restringir exatamente ao nosso próprio código evita isso
+# independente do que estiver sob .venv.
+include = ["app", "alembic", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+# B008 (chamada de função em default de argumento) acusa falso positivo no
+# próprio padrão `Depends(...)` do FastAPI — não é um default acidental, é
+# assim que toda rota declara uma dependência; sem ignorar isso seria
+# `# noqa: B008` em quase todo handler de rota do código.
+ignore = ["B008"]

@@ -1,7 +1,33 @@
 node_modules/
 dist/
+.turbo/
 .env
+# Leftover from the old npmrc-file-based CodeArtifact secret (web/Dockerfile
+# now uses NPM_REGISTRY_URL + a raw-token secret instead) — keep ignoring it
+# in case a local copy still lingers with a real token in it.
+.npmrc.auth
 *.log
+*.tsbuildinfo
+coverage/
+
+# Auto-generated on first import of dh_helper.log.loggers.LoggerConfiguration
+# (a transitive import of dh-helper-db, unrelated to our own code) — not
+# something we author or want committed.
+log.config.json
+
+# Python
+__pycache__/
+.venv/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+
+uploads/
+
+# Dump intermediário de `npm run dba:generate` (server/alembic/dba_migrations/README.md)
+# — só os *.sql já processados em server/alembic/dba_migrations/sql/ são commitados.
+server/migrations.sql
 
 # Scratch workspace for the superpowers brainstorming/subagent-driven-dev skills
 # (mockup HTML, task briefs/reports, review diffs - not project source)

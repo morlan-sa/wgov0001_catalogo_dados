@@ -1,0 +1,81 @@
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      # AWS CodeArtifact auth for morlan-access-lib — see the `secrets:`
+      # block below. Export a fresh token before building (they last
+      # ~12h): CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact
+      # get-authorization-token --domain <domain> --domain-owner
+      # <account-id> --query authorizationToken --output text)
+      secrets:
+        - codeartifact_token
+    container_name: wgov0001_catalogo_dados-server
+    restart: unless-stopped
+    ports:
+      - '8000:8000'
+    # DATABASE_HOST/DATABASE_NAME/DATABASE_SCHEMA/etc. come from here — no
+    # `environment:` override, unlike a dedicated-Postgres setup. The
+    # Postgres itself is shared infra this app just points at (see
+    # Settings.DATABASE_SCHEMA in app/config.py); compose doesn't stand one up.
+    env_file: ./server/.env
+    # For local dev, when the shared Postgres is itself just a container
+    # publishing its port to the host (DATABASE_HOST pointing at
+    # host.docker.internal) rather than a real external instance (AWS RDS
+    # in prod, no extra_hosts needed there) — Docker Desktop resolves
+    # host.docker.internal on its own, but plain Linux Docker doesn't
+    # without this.
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'python',
+          '-c',
+          'import urllib.request; urllib.request.urlopen("http://localhost:8000/api/health")'
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+        # Same CodeArtifact domain/account already hardcoded in
+        # server/pyproject.toml's `codeartifact` index and in both
+        # .github/workflows/deploy-*.yml's `--domain morlan` steps — not
+        # a new precedent. Just the registry URL, no credential in it.
+        NPM_REGISTRY_URL: https://morlan-432837989720.d.codeartifact.us-east-1.amazonaws.com/npm/npm/
+      # npm registry auth for @morlan/* (AWS CodeArtifact) — see the
+      # `secrets:` block below. Same mechanism as `server`'s
+      # codeartifact_token: export a fresh CODEARTIFACT_AUTH_TOKEN before
+      # building (see the comment on `server`'s build above for how).
+      secrets:
+        - npm_token
+    container_name: wgov0001_catalogo_dados-web
+    restart: unless-stopped
+    ports:
+      - '3000:8080'
+    depends_on:
+      - server
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://localhost:8080/']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+secrets:
+  # Sourced from a host env var, not a file — a CodeArtifact token is
+  # short-lived and shouldn't live on disk. See the comment on `server`'s
+  # build above for how to fetch one. Same env var backs both secrets (pip
+  # and npm resolve from the same CodeArtifact domain/account).
+  npm_token:
+    environment: CODEARTIFACT_AUTH_TOKEN
+  codeartifact_token:
+    environment: CODEARTIFACT_AUTH_TOKEN
