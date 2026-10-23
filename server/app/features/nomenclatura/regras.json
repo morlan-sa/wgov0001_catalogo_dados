@@ -1,0 +1,419 @@
+{
+  "fonte": "SKTIARQ0001",
+  "versao": "0.2.0",
+  "data_fonte": "2026-08-04",
+  "prefixos": {
+    "CD": {
+      "codigo": "CD",
+      "significado": "Código",
+      "exemplo": "Código único ou referência numérica/alfa para uma entidade",
+      "dominios": [
+        "CD_INT",
+        "CD_VAR"
+      ]
+    },
+    "CEP": {
+      "codigo": "CEP",
+      "significado": "CEP",
+      "exemplo": "Campo destinado ao código de endereçamento postal",
+      "dominios": [
+        "CEP"
+      ]
+    },
+    "DS": {
+      "codigo": "DS",
+      "significado": "Descrição",
+      "exemplo": "Texto explicativo ou complementar",
+      "dominios": [
+        "DS_C",
+        "DS_L",
+        "DS_T"
+      ]
+    },
+    "DT": {
+      "codigo": "DT",
+      "significado": "Data",
+      "exemplo": "Representa datas",
+      "dominios": [
+        "DT",
+        "DT_AM",
+        "DT_TST"
+      ]
+    },
+    "EML": {
+      "codigo": "EML",
+      "significado": "E-mail",
+      "exemplo": "Endereço eletrônico de contato",
+      "dominios": [
+        "EML"
+      ]
+    },
+    "HR": {
+      "codigo": "HR",
+      "significado": "Hora",
+      "exemplo": "Representa apenas a hora",
+      "dominios": [
+        "HR"
+      ]
+    },
+    "ID": {
+      "codigo": "ID",
+      "significado": "Identificador",
+      "exemplo": "Identificador único interno (registro)",
+      "dominios": [
+        "ID"
+      ]
+    },
+    "IN": {
+      "codigo": "IN",
+      "significado": "Indicador",
+      "exemplo": "Responde a uma condição binária: S ou N, V ou F, 1 ou 0",
+      "dominios": [
+        "IN"
+      ]
+    },
+    "LEG": {
+      "codigo": "LEG",
+      "significado": "Legado",
+      "exemplo": "Prefixo ref. a colunas do legado",
+      "dominios": []
+    },
+    "NM": {
+      "codigo": "NM",
+      "significado": "Nome",
+      "exemplo": "Nome próprio ou fantasia de pessoas, empresas, produtos etc.",
+      "dominios": [
+        "NM"
+      ]
+    },
+    "NR": {
+      "codigo": "NR",
+      "significado": "Número",
+      "exemplo": "Número identificável",
+      "dominios": []
+    },
+    "PC": {
+      "codigo": "PC",
+      "significado": "Porcentagem",
+      "exemplo": "Representa percentuais (%)",
+      "dominios": []
+    },
+    "QT": {
+      "codigo": "QT",
+      "significado": "Quantidade",
+      "exemplo": "Indica quantidade física, contável ou planejada",
+      "dominios": []
+    },
+    "ST": {
+      "codigo": "ST",
+      "significado": "Situação/Status",
+      "exemplo": "Informa uma situação ou status",
+      "dominios": [
+        "ST"
+      ]
+    },
+    "TEL": {
+      "codigo": "TEL",
+      "significado": "Telefone",
+      "exemplo": "Número de telefone",
+      "dominios": [
+        "TEL"
+      ]
+    },
+    "TP": {
+      "codigo": "TP",
+      "significado": "Tipo",
+      "exemplo": "Informa um tipo de classificação",
+      "dominios": [
+        "TP"
+      ]
+    },
+    "UF": {
+      "codigo": "UF",
+      "significado": "UF",
+      "exemplo": "Unidade federativa (estado brasileiro)",
+      "dominios": [
+        "UF"
+      ]
+    },
+    "VL": {
+      "codigo": "VL",
+      "significado": "Valor numérico",
+      "exemplo": "Valores numéricos gerais, não monetário",
+      "dominios": []
+    },
+    "VR": {
+      "codigo": "VR",
+      "significado": "Valor monetário",
+      "exemplo": "Valores financeiros em moeda",
+      "dominios": []
+    },
+    "VLX": {
+      "codigo": "VLX",
+      "significado": "Valor calculado",
+      "exemplo": "Valores de um cálculo, envolvendo 2 ou mais colunas",
+      "dominios": []
+    }
+  },
+  "dominios_tipo": {
+    "CD_INT": {
+      "codigo": "CD_INT",
+      "descricao": "Código inteiro",
+      "tipo": "INTEGER",
+      "escala": null,
+      "nulo": false,
+      "exemplo": "CD_PRODUTO = 1000256"
+    },
+    "CD_VAR": {
+      "codigo": "CD_VAR",
+      "descricao": "Código varchar (alfanumérico)",
+      "tipo": "VARCHAR",
+      "escala": "20",
+      "nulo": false,
+      "exemplo": "CD_TRANSACAO = CX25006X"
+    },
+    "CEP": {
+      "codigo": "CEP",
+      "descricao": "CEP",
+      "tipo": "VARCHAR",
+      "escala": "8",
+      "nulo": false,
+      "exemplo": "CEP_CLIENTE = 14622210"
+    },
+    "CNPJ": {
+      "codigo": "CNPJ",
+      "descricao": "CNPJ",
+      "tipo": "VARCHAR",
+      "escala": "14",
+      "nulo": false,
+      "exemplo": "NR_CNPJ = 53999999000199"
+    },
+    "CPF": {
+      "codigo": "CPF",
+      "descricao": "CPF",
+      "tipo": "VARCHAR",
+      "escala": "11",
+      "nulo": false,
+      "exemplo": "NR_CPF = 12345678901"
+    },
+    "DS_C": {
+      "codigo": "DS_C",
+      "descricao": "Descrição curta",
+      "tipo": "VARCHAR",
+      "escala": "256",
+      "nulo": true,
+      "exemplo": "\"descrição curta\""
+    },
+    "DS_L": {
+      "codigo": "DS_L",
+      "descricao": "Descrição longa",
+      "tipo": "VARCHAR",
+      "escala": "1500",
+      "nulo": true,
+      "exemplo": "\"descrição longa\""
+    },
+    "DS_T": {
+      "codigo": "DS_T",
+      "descricao": "Descrição texto (longuíssima)",
+      "tipo": "TEXT",
+      "escala": null,
+      "nulo": true,
+      "exemplo": "\"descrição texto\""
+    },
+    "DT": {
+      "codigo": "DT",
+      "descricao": "Data",
+      "tipo": "DATE",
+      "escala": null,
+      "nulo": true,
+      "exemplo": "DT_APONTAMENTO = 03/03/2026"
+    },
+    "DT_AM": {
+      "codigo": "DT_AM",
+      "descricao": "Data ano/mês",
+      "tipo": "VARCHAR",
+      "escala": "6",
+      "nulo": true,
+      "exemplo": "DT_ANO_MES_CIVIL = 202602"
+    },
+    "DT_TST": {
+      "codigo": "DT_TST",
+      "descricao": "Data/hora (timestamp)",
+      "tipo": "TIMESTAMP",
+      "escala": null,
+      "nulo": true,
+      "exemplo": "DT_ATU_DADOS = 2026-02-27-14.04.27"
+    },
+    "EML": {
+      "codigo": "EML",
+      "descricao": "E-mail",
+      "tipo": "VARCHAR",
+      "escala": "80",
+      "nulo": true,
+      "exemplo": "EML_CLIENTE = agostinho@empresa.com.br"
+    },
+    "HR": {
+      "codigo": "HR",
+      "descricao": "Hora",
+      "tipo": "TIME",
+      "escala": null,
+      "nulo": true,
+      "exemplo": "HR_APONTAMENTO = 11:30:00"
+    },
+    "ID": {
+      "codigo": "ID",
+      "descricao": "Identificador único auto-incremento",
+      "tipo": "INTEGER",
+      "escala": "AUTOINCREMENT",
+      "nulo": false,
+      "exemplo": "ID_DOMINIO = 9999"
+    },
+    "IN": {
+      "codigo": "IN",
+      "descricao": "Indicador de condição binária",
+      "tipo": "BOOLEAN",
+      "escala": null,
+      "nulo": false,
+      "exemplo": "IN_CLIENTE_ATIVO = S"
+    },
+    "INS_UF": {
+      "codigo": "INS_UF",
+      "descricao": "Inscrição estadual",
+      "tipo": "VARCHAR",
+      "escala": "14",
+      "nulo": false,
+      "exemplo": "NR_INSC_ESTADUAL = 12345678901234 / ISENTO"
+    },
+    "NM": {
+      "codigo": "NM",
+      "descricao": "Nome",
+      "tipo": "VARCHAR",
+      "escala": "128",
+      "nulo": false,
+      "exemplo": "NM_CLIENTE = CENTER MALHAS METALICAS"
+    },
+    "ST": {
+      "codigo": "ST",
+      "descricao": "Situação ou status",
+      "tipo": "VARCHAR",
+      "escala": "20",
+      "nulo": true,
+      "exemplo": "ST_PAGAMENTO = APROVADO"
+    },
+    "TEL": {
+      "codigo": "TEL",
+      "descricao": "Telefone",
+      "tipo": "VARCHAR",
+      "escala": "11",
+      "nulo": false,
+      "exemplo": "TEL_FORNECEDOR = 16999999999"
+    },
+    "TP": {
+      "codigo": "TP",
+      "descricao": "Tipo / classificação",
+      "tipo": "VARCHAR",
+      "escala": "20",
+      "nulo": true,
+      "exemplo": "TP_CLIENTE = PJ"
+    },
+    "UF": {
+      "codigo": "UF",
+      "descricao": "Unidade federativa",
+      "tipo": "VARCHAR",
+      "escala": "2",
+      "nulo": false,
+      "exemplo": "UF_ENTREGA_MERCADORIA = SP"
+    }
+  },
+  "dominios_negocio": {
+    "COM": "Comercial",
+    "FAT": "Faturamento",
+    "FIN": "Financeiro",
+    "CST": "Custos",
+    "CTB": "Contábil",
+    "FIS": "Fiscal",
+    "CPR": "Compras",
+    "SUP": "Suprimentos",
+    "EST": "Estoque",
+    "PRD": "Produção",
+    "QUA": "Qualidade",
+    "ENG": "Engenharia",
+    "MAN": "Manutenção",
+    "LOG": "Logística",
+    "TRN": "Transporte",
+    "EXP": "Expedição",
+    "RHU": "Recursos Humanos",
+    "SST": "Segurança do Trabalho",
+    "CTR": "Controladoria",
+    "AUD": "Auditoria",
+    "GOV": "Governança de Dados",
+    "TIN": "Tecnologia da Informação",
+    "MKT": "Marketing",
+    "IAM": "Identidade e Controle de Acesso"
+  },
+  "termos": {
+    "CODIGO": "CD",
+    "COD": "CD",
+    "IDENTIFICADOR": "ID",
+    "ID": "ID",
+    "NOME": "NM",
+    "DESCRICAO": "DS",
+    "DATA": "DT",
+    "HORA": "HR",
+    "NUMERO": "NR",
+    "NUM": "NR",
+    "QUANTIDADE": "QT",
+    "QTD": "QT",
+    "INDICADOR": "IN",
+    "FLAG": "IN",
+    "TIPO": "TP",
+    "TP": "TP",
+    "SITUACAO": "ST",
+    "STATUS": "ST",
+    "PERCENTUAL": "PC",
+    "PERC": "PC",
+    "TELEFONE": "TEL",
+    "TEL": "TEL",
+    "EMAIL": "EML",
+    "CEP": "CEP",
+    "UF": "UF",
+    "ESTADO": "UF",
+    "CAMPO DO SISTEMA LEGADO": "LEG"
+  },
+  "ambiguidades": [
+    {
+      "termos": [
+        "NUMERO",
+        "CODIGO"
+      ],
+      "opcoes": [
+        "NR",
+        "CD"
+      ],
+      "pergunta": "É um número de documento ou um código de cadastro?"
+    },
+    {
+      "termos": [
+        "MARGEM",
+        "TAXA",
+        "INDICE"
+      ],
+      "opcoes": [
+        "VL",
+        "PC"
+      ],
+      "pergunta": "É um valor absoluto ou um percentual?"
+    },
+    {
+      "termos": [
+        "NOME",
+        "DESCRICAO CURTA"
+      ],
+      "opcoes": [
+        "NM",
+        "DS"
+      ],
+      "pergunta": "É o nome de algo (pessoa/produto) ou uma descrição livre?"
+    }
+  ]
+}
