@@ -66,3 +66,35 @@ def test_ambiguidade_por_termo(nome, opcoes):
 @pytest.mark.parametrize("nome", ["DESCRICAO_X", "COD_X", "NUM_X"])
 def test_sem_ambiguidade(nome):
     assert validar_nome(nome).ambiguidade is None
+
+
+@pytest.mark.parametrize(
+    "nome", ["NUMERO_NOTA", "CODIGO_X", "NOME_CLIENTE", "descrição curta x"]
+)
+def test_ambiguo_nao_assume_nome_sugerido(nome):
+    # Spec 3.1: o validador pergunta, nunca assume — sem nome sugerido.
+    v = validar_nome(nome)
+    assert v.ambiguidade is not None
+    assert v.avaliacao.resultado == "fora"
+    assert v.avaliacao.problemas
+    assert v.avaliacao.sugestao is None or v.avaliacao.sugestao.nome is None
+
+
+@pytest.mark.parametrize(
+    ("nome", "tipo", "tamanho", "resultado"),
+    [
+        ("CD_X", "VARCHAR(50)", None, "aviso"),  # CD_VAR é 20
+        ("NM_X", "VARCHAR(100)", None, "aviso"),  # NM é 128
+        ("NM_X", "VARCHAR(128)", None, "conforme"),
+        ("CD_X", "VARCHAR(20)", None, "conforme"),
+        ("CD_X", "varchar ( 50 )", None, "aviso"),
+        ("NM_X", "DECIMAL(10,2)", None, "fora"),
+        ("CD_X", "VARCHAR(abc)", None, None),
+        ("CD_X", "VARCHAR()", None, None),
+        ("CD_X", "VARCHAR(50)", 20, "conforme"),  # tamanho explícito vence
+    ],
+)
+def test_tipo_com_tamanho_embutido(nome, tipo, tamanho, resultado):
+    v = validar_nome(nome, tipo, tamanho)
+    if resultado is not None:
+        assert v.avaliacao.resultado == resultado
