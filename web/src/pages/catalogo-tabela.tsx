@@ -30,16 +30,20 @@ export function CatalogoTabela() {
 
   const [soNaoConformes, setSoNaoConformes] = useState(false)
 
+  // Em schema LEGADO nenhuma coluna é avaliada: o filtro não faria sentido.
+  const filtraNaoConformes =
+    soNaoConformes && (detail.data?.conformidade.aplicavel ?? false)
+
   const columns = useMemo(() => {
     const term = search.toLowerCase()
     return (detail.data?.columns ?? [])
       .filter((c) => c.name.toLowerCase().includes(term))
       .filter(
         (c) =>
-          !soNaoConformes ||
+          !filtraNaoConformes ||
           (c.conformidade !== null && c.conformidade.resultado !== "conforme")
       )
-  }, [detail.data, search, soNaoConformes])
+  }, [detail.data, search, filtraNaoConformes])
   const pagination = usePagination(columns)
 
   const trail = (
@@ -97,7 +101,8 @@ export function CatalogoTabela() {
         />
         <Checkbox
           label="Só não conformes"
-          checked={soNaoConformes}
+          checked={filtraNaoConformes}
+          disabled={!d.conformidade.aplicavel}
           onCheckedChange={(v) => setSoNaoConformes(v === true)}
         />
       </div>

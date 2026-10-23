@@ -143,6 +143,16 @@ describe("Detalhe da tabela — conformidade", () => {
     expect(screen.getByText("0 de 0 com descrição")).toBeInTheDocument()
   })
 
+  it("tabela legada desabilita 'Só não conformes' (nenhuma coluna é avaliada)", async () => {
+    renderTabela(DETALHE_LEGADO_RAW)
+    await screen.findByText("COD_FORNEC")
+
+    const caixa = screen.getByRole("checkbox", { name: "Só não conformes" })
+    expect(caixa).toBeDisabled()
+    await userEvent.click(caixa)
+    expect(screen.getByText("COD_FORNEC")).toBeInTheDocument()
+  })
+
   it("mantém a mensagem de leitura negada na saúde", async () => {
     renderTabela({
       ...DETALHE_RAW,
@@ -224,6 +234,27 @@ describe("Lista de tabelas do schema — conformidade", () => {
         "Conformidade de nomes do schema: 56% (4 de 8 colunas conformes)"
       )
     ).toBeInTheDocument()
+  })
+
+  it("schema aplicável sem colunas mostra '—' sem o sinal de porcentagem", async () => {
+    renderSchema([
+      tabela("SEM_COLUNAS", {
+        aplicavel: true,
+        conformes: 0,
+        avisos: 0,
+        fora: 0,
+        total: 0,
+        percentual: null,
+        pontos: 0,
+      }),
+    ])
+
+    expect(
+      await screen.findByText(
+        "Conformidade de nomes do schema: — (0 de 0 colunas conformes)"
+      )
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/—%/)).not.toBeInTheDocument()
   })
 
   it("schema legado mostra 'N/A' e não mostra o resumo", async () => {

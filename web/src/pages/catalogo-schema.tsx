@@ -64,6 +64,9 @@ export function CatalogoSchema() {
   )
   const pagination = usePagination(visible)
   const resumo = useMemo(() => somarConformidade(tables.data ?? []), [tables.data])
+  // Sem colunas avaliadas não há percentual: mostra "—", nunca "—%".
+  const percentualResumo =
+    resumo.percentual === null ? "—" : `${resumo.percentual}%`
 
   return (
     <div>
@@ -76,8 +79,8 @@ export function CatalogoSchema() {
       </P>
       {resumo.aplicavel && (
         <P className="mb-4 text-sm text-muted-foreground">
-          Conformidade de nomes do schema: {resumo.percentual ?? "—"}%
-          ({resumo.conformes} de {resumo.total} colunas conformes)
+          Conformidade de nomes do schema: {percentualResumo} ({resumo.conformes} de {resumo.total} colunas
+          conformes)
         </P>
       )}
 
