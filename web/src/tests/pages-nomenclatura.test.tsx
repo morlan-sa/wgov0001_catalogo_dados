@@ -121,6 +121,29 @@ describe("Padrões de Nomenclatura", () => {
     expect(within(pergunta).getByText("DT_TST")).toBeInTheDocument()
   })
 
+  it("nome ambíguo mostra a pergunta e não oferece nome para copiar", async () => {
+    postMock.mockResolvedValue({
+      data: {
+        nome: "NUMERO_NOTA",
+        resultado: "fora",
+        problemas: ["O prefixo NUMERO não faz parte da convenção."],
+        sugestao: { nome: null, dominio: null, tipo: null, nulo: null },
+        ambiguidade: REGRAS_RAW.ambiguidades[0],
+        dominios_candidatos: [],
+      },
+    })
+    renderWithProviders(<Nomenclatura />)
+    await screen.findByText("Representa datas")
+
+    await userEvent.type(screen.getByLabelText("Nome da coluna"), "NUMERO_NOTA")
+    await userEvent.click(screen.getByRole("button", { name: "Validar" }))
+
+    const pergunta = await screen.findByTestId("ambiguidade-resultado")
+    expect(within(pergunta).getByText("É só data ou data e hora?")).toBeInTheDocument()
+    expect(screen.queryByText("Sugestão:")).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Copiar nome" })).not.toBeInTheDocument()
+  })
+
   it("domínios candidatos reexecutam a validação com o tipo do domínio escolhido", async () => {
     postMock.mockResolvedValueOnce({
       data: {
