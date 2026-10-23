@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import type { Table } from "@/hooks/queries/catalog"
+import type { Conformidade } from "@/hooks/queries/nomenclatura"
 import type { Schema } from "@/hooks/queries/schemas"
 import { barHeight } from "@/utils/chart"
 import {
@@ -7,6 +8,7 @@ import {
   filterSchemas,
   filterTables,
   schemasDoAtalho,
+  somarConformidade,
 } from "@/utils/catalog"
 import { statusVariant } from "@/utils/status"
 
@@ -84,6 +86,66 @@ describe("schemasDoAtalho", () => {
   it("todos e manual", () => {
     expect(schemasDoAtalho("todas", SCHEMAS).size).toBe(4)
     expect(schemasDoAtalho("manual", SCHEMAS).size).toBe(0)
+  })
+})
+
+describe("somarConformidade", () => {
+  const conf = (
+    aplicavel: boolean,
+    conformes: number,
+    avisos: number,
+    fora: number
+  ): Conformidade => ({
+    aplicavel,
+    conformes,
+    avisos,
+    fora,
+    total: conformes + avisos + fora,
+    percentual: null,
+  })
+  const tabela = (name: string, conformidade: Conformidade | null): Table => ({
+    name,
+    type: "Tabela",
+    description: null,
+    classification: "Não classificado",
+    conformidade,
+  })
+
+  it("soma as tabelas aplicáveis e ignora a não aplicável", () => {
+    const r = somarConformidade([
+      tabela("A", conf(true, 3, 1, 0)),
+      tabela("B", conf(true, 1, 0, 3)),
+      tabela("LEG", conf(false, 0, 0, 0)),
+      tabela("SEM", null),
+    ])
+    expect(r).toEqual({
+      aplicavel: true,
+      conformes: 4,
+      avisos: 1,
+      fora: 3,
+      total: 8,
+      percentual: 56, // (4 + 0,5) / 8 = 56,25 %
+    })
+  })
+
+  it("arredonda .5 para cima, como o backend", () => {
+    // 1 / 8 = 12,5 % -> 13
+    expect(somarConformidade([tabela("A", conf(true, 1, 0, 7))]).percentual).toBe(13)
+  })
+
+  it("sem nenhuma tabela aplicável: não aplicável, zeros e percentual nulo", () => {
+    expect(somarConformidade([tabela("LEG", conf(false, 0, 0, 0))])).toEqual({
+      aplicavel: false,
+      conformes: 0,
+      avisos: 0,
+      fora: 0,
+      total: 0,
+      percentual: null,
+    })
+  })
+
+  it("aplicável mas sem colunas: percentual nulo", () => {
+    expect(somarConformidade([tabela("A", conf(true, 0, 0, 0))]).percentual).toBeNull()
   })
 })
 

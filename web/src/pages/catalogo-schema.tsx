@@ -19,7 +19,8 @@ import {
   useCatalogTables,
   useTableSaude,
 } from "@/hooks/queries/catalog"
-import { filterTables, TIPO_LABEL } from "@/utils/catalog"
+import type { Conformidade } from "@/hooks/queries/nomenclatura"
+import { filterTables, somarConformidade, TIPO_LABEL } from "@/utils/catalog"
 
 /**
  * Saúde da tabela, calculada sob demanda: varre a tabela inteira no banco.
@@ -38,6 +39,17 @@ function SaudeCell({ schema, table }: { schema: string; table: string }) {
   )
 }
 
+/** Percentual de conformidade de nomes da tabela; N/A em schema legado. */
+function ConformidadeTabela({ conformidade }: { conformidade: Conformidade | null }) {
+  if (!conformidade) return <Span variant="small">—</Span>
+  if (!conformidade.aplicavel) return <Span variant="small">N/A</Span>
+  return (
+    <Span variant="muted">
+      {conformidade.percentual === null ? "—" : `${conformidade.percentual}%`}
+    </Span>
+  )
+}
+
 export function CatalogoSchema() {
   const { schema = "" } = useParams()
   const [searchParams] = useSearchParams()
@@ -51,16 +63,23 @@ export function CatalogoSchema() {
     [tables.data, search, tipo]
   )
   const pagination = usePagination(visible)
+  const resumo = useMemo(() => somarConformidade(tables.data ?? []), [tables.data])
 
   return (
     <div>
       <BreadcrumbTrail
         items={[{ label: "Catálogo", to: `/catalogo${tipoQuery}` }, { label: schema }]}
       />
-      <P className="mb-4 text-sm text-muted-foreground">
+      <P className="mb-1 text-sm text-muted-foreground">
         Tabelas e views do schema {schema}
         {tipo ? ` · somente ${TIPO_LABEL[tipo]?.toLowerCase()}s` : ""}
       </P>
+      {resumo.aplicavel && (
+        <P className="mb-4 text-sm text-muted-foreground">
+          Conformidade de nomes do schema: {resumo.percentual ?? "—"}%
+          ({resumo.conformes} de {resumo.total} colunas conformes)
+        </P>
+      )}
 
       <Input
         type="search"
@@ -87,6 +106,7 @@ export function CatalogoSchema() {
               <TableHead>Descrição</TableHead>
               <TableHead>Classificação</TableHead>
               <TableHead>Saúde dos dados</TableHead>
+              <TableHead>Conformidade</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -107,6 +127,9 @@ export function CatalogoSchema() {
                 </TableCell>
                 <TableCell>
                   <SaudeCell schema={schema} table={t.name} />
+                </TableCell>
+                <TableCell>
+                  <ConformidadeTabela conformidade={t.conformidade} />
                 </TableCell>
               </TableRow>
             ))}

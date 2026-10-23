@@ -2,6 +2,7 @@ import { useMemo, useState } from "react"
 import { useParams } from "react-router-dom"
 import {
   Badge,
+  Checkbox,
   H2,
   Input,
   P,
@@ -16,6 +17,8 @@ import {
 } from "@morlan/ui"
 import { BreadcrumbTrail } from "@/components/breadcrumb-trail"
 import { ListSkeleton, QueryError } from "@/components/query-feedback"
+import { ConformidadeCell } from "@/components/conformidade-cell"
+import { ResumoTabela } from "@/components/resumo-tabela"
 import { StatusBadge } from "@/components/status-badge"
 import { useTableDetail } from "@/hooks/queries/catalog"
 import { columnType } from "@/utils/catalog"
@@ -25,12 +28,18 @@ export function CatalogoTabela() {
   const detail = useTableDetail(schema, table)
   const [search, setSearch] = useState("")
 
+  const [soNaoConformes, setSoNaoConformes] = useState(false)
+
   const columns = useMemo(() => {
     const term = search.toLowerCase()
-    return (detail.data?.columns ?? []).filter((c) =>
-      c.name.toLowerCase().includes(term)
-    )
-  }, [detail.data, search])
+    return (detail.data?.columns ?? [])
+      .filter((c) => c.name.toLowerCase().includes(term))
+      .filter(
+        (c) =>
+          !soNaoConformes ||
+          (c.conformidade !== null && c.conformidade.resultado !== "conforme")
+      )
+  }, [detail.data, search, soNaoConformes])
   const pagination = usePagination(columns)
 
   const trail = (
@@ -75,32 +84,23 @@ export function CatalogoTabela() {
       <P className="mb-1 text-sm text-muted-foreground">
         {d.description ?? "Sem descrição cadastrada"}
       </P>
-      <div className="mb-4 flex items-center gap-2">
-        {d.saude && d.totalRegistros !== null ? (
-          <>
-            <Span variant="small">
-              {d.totalRegistros.toLocaleString("pt-BR")} registro(s)
-            </Span>
-            <Span variant="small">·</Span>
-            <Span variant="small">Saúde dos dados: {d.saude.percentual}%</Span>
-            <StatusBadge>{d.saude.classificacao}</StatusBadge>
-          </>
-        ) : (
-          <Span variant="small">
-            Sem permissão de leitura dos dados desta tabela — a saúde não pôde
-            ser calculada.
-          </Span>
-        )}
-      </div>
+      <ResumoTabela detail={d} />
 
-      <Input
-        type="search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Buscar coluna..."
-        aria-label="Buscar coluna"
-        className="mb-4 max-w-sm"
-      />
+      <div className="mb-4 flex flex-wrap items-center gap-4">
+        <Input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar coluna..."
+          aria-label="Buscar coluna"
+          className="max-w-sm"
+        />
+        <Checkbox
+          label="Só não conformes"
+          checked={soNaoConformes}
+          onCheckedChange={(v) => setSoNaoConformes(v === true)}
+        />
+      </div>
 
       <Table
         pagination={{ ...pagination.paginationConfig, label: "colunas" }}
@@ -114,6 +114,7 @@ export function CatalogoTabela() {
             <TableHead>Nulo</TableHead>
             <TableHead>PK</TableHead>
             <TableHead>Completude</TableHead>
+            <TableHead>Conformidade</TableHead>
             <TableHead>Descrição</TableHead>
           </TableRow>
         </TableHeader>
@@ -136,6 +137,9 @@ export function CatalogoTabela() {
                 ) : (
                   <Span variant="small">-</Span>
                 )}
+              </TableCell>
+              <TableCell>
+                <ConformidadeCell avaliacao={c.conformidade} />
               </TableCell>
               <TableCell>{c.description ?? "-"}</TableCell>
             </TableRow>
