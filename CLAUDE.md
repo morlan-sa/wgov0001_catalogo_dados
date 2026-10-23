@@ -15,10 +15,11 @@ together; each app is fully self-contained with its own `package.json`/`pyprojec
 `Dockerfile`/`.env.example` (rnc2 doesn't use workspace tooling either — deliberate).
 
 It was converted from a Node/Express + React 18 (JavaScript) proof of concept (`WGOV0001`) to
-the Morlan standard. The domain lives in four vertical slices under `server/app/features/`
-(`schemas`, `catalog`, `dashboard`, `domains`) — see "Catálogo (DB2, read-only)" below — and
-the screens are `web/src/pages/{dashboard,catalogo,catalogo-schema,catalogo-tabela,scanner,
-dominios,dominio}.tsx`.
+the Morlan standard. The domain lives in five vertical slices under `server/app/features/`
+(`schemas`, `catalog`, `dashboard`, `domains`, `nomenclatura`) — see "Catálogo (DB2, read-only)"
+and "Nomenclatura e conformidade" below — and the screens are
+`web/src/pages/{dashboard,catalogo,catalogo-schema,catalogo-tabela,scanner,dominios,dominio,
+nomenclatura}.tsx`.
 
 **Authentication is real SSO via Keycloak**, not a stub — both apps consume Morlan's internal
 auth libraries in the BFF pattern: the backend (`morlan-access-lib`, import `morlan_access`)
@@ -318,7 +319,7 @@ conventions minus its domain features.
   here only ever surfaces as a stderr warning, never a startup crash.
 - `app/features/<name>/{controller,schemas,models}.py` — vertical-slice
   layout, one folder per feature: `health/` (public), `schemas/`, `catalog/`,
-  `dashboard/`, `domains/` (all authenticated) and `auth/` (the reusable
+  `dashboard/`, `domains/`, `nomenclatura/` (all authenticated) and `auth/` (the reusable
   `get_current_user`, no routes).
 - `app/config.py` — `pydantic-settings` `Settings`, `.env`-backed.
 - Alembic migrations live in `alembic/versions/`; `alembic/env.py` targets
@@ -465,7 +466,8 @@ The rest of this section was written for the DB2 source; the same rules apply to
   `/columns/search?q=&filter=`), `dashboard/` (`/summary`, `/saude`, `/saude-legado`),
   `domains/` (`GET /api/domains`). `catalog/inference.py` + `reference.py` hold the pure
   inferences (camada by `STG_/CUR_/RPT_` prefix else `LEGADO`; domain by schema suffix against
-  the 24 corporate domains; classification by regex on table `REMARKS`; column domain by prefix).
+  the 24 corporate domains; classification by regex on table `REMARKS`; column domain by prefix,
+  whose labels now come from the `nomenclatura` rules — see below).
 - **Saúde dos dados** = real completeness (`COUNT(col)` / `COUNT(*)`, text columns via
   `NULLIF(TRIM(col), '')`) averaged over business columns; audit columns
   (`Settings.AUDIT_COLUMNS`) are excluded. Thresholds: `COMPLETUDE_LIMIAR_EXCELENTE`/`_BOM`.
@@ -479,6 +481,57 @@ The rest of this section was written for the DB2 source; the same rules apply to
 - Dynamic identifiers (`"SCHEMA"."TABLE"` in the completeness query) are validated against
   `^[A-Za-z0-9_]+$` before being interpolated; values always go through `?` parameters.
 - Tests are offline: `query` is faked, no DB2 is ever contacted.
+
+## Nomenclatura e conformidade
+
+The Morlan naming convention (prefixes, type domains, business domains) is the company skill
+**SKTIARQ0001** (consultative only — it never creates a prefix or domain; that is a decision for
+TI-Governança de Dados). The app consumes it through a single source so the page, the
+conformidade badges and (later) the skill API can never disagree:
+
+- **Source → JSON.** `docs/nomenclatura-fonte/{prefixos,dominios,convencao-nomenclatura}.md` are
+  copies of the skill's `references/` (version and date in `LEIAME.md`). To update: consult the
+  skill, copy the three files over, then regenerate with
+  `cd server && uv run python scripts/gerar_regras_nomenclatura.py --versao <x.y.z> --data-fonte
+  <aaaa-mm-dd>` (both arguments are required — nothing about the source is hardcoded) and commit
+  `server/app/features/nomenclatura/regras.json`. `tests/test_nomenclatura_regras.py` fails if the
+  JSON drifts from the docs. `docs/` is outside both Docker build contexts on purpose; the JSON
+  ships inside `app/`.
+- **Slice `server/app/features/nomenclatura/`.** `regras.py` (frozen dataclasses +
+  `carregar_regras()`), `conformidade.py` (pure `avaliar_coluna` / `resumir`), `service.py`
+  (`validar_nome`), `controller.py` — `GET /api/nomenclatura` (the rules + source version) and
+  `POST /api/nomenclatura/validar`. Both require a session; nothing is ever written.
+- **Evaluation rules.** A column is `conforme`, `aviso` or `fora`. Prefixes `NR_`, `VL_`, `VR_`,
+  `PC_`, `QT_`, `LEG_`, `VLX_` have no type domain, so only the prefix is validated. Types are
+  compared by **family** (texto, inteiro, decimal, data, hora, data_hora, booleano), never by the
+  database type name, so DB2 and Postgres behave the same; a different family is `fora`, the same
+  family with another size is `aviso` (a size of 0/unknown is not compared — Postgres reports
+  `LENGTH=0` for `text`). With several candidate domains (`CD_`, `DS_`, `DT_`) the column is
+  `conforme` if it matches any of them. `IN_` accepts `boolean` or a 1-char text (DB2 has no boolean).
+  The suggested fix only swaps the prefix (`COD_FORNEC` → `CD_FORNEC`); it does not expand
+  abbreviations (that belongs to the similarity search, a later phase).
+- **Percentage.** `conforme` = 1, `aviso` = `Settings.CONFORMIDADE_PESO_AVISO` (0.5), `fora` = 0,
+  over business columns (`AUDIT_COLUMNS` excluded), `round_half_up`. `Resumo.pontos` /
+  `ConformidadeOut.pontos` carry the weighted points so the front sums `pontos / total` without
+  knowing the weight — do not hardcode the weight in `web/`. **`LEGADO` schemas are "não
+  aplicável"** (`aplicavel=false`, columns without evaluation).
+- **Where it shows up.** `TableDetailOut.conformidade` + `documentacao` and each column's
+  `conformidade` (`get_table_detail`, also when `leitura_negada` — it only needs metadata);
+  `TableOut.conformidade` on the schema's table list (`list_tables_com_conformidade`: one extra
+  query per schema, `Dialect.colunas_do_schema_sql`, cached). The detail builds its summary from
+  `ColumnOut`, the list from raw rows — keep both paths on the same rule when changing it.
+- **The validator asks, it never assumes.** An ambiguous term (`NUMERO_`, `MARGEM_`, `NOME_`,
+  `DESCRICAO CURTA`…) returns `ambiguidade` and **no suggested name**; a prefix with several type
+  domains and no type returns `dominios_candidatos`. A type typed as `VARCHAR(50)` is split in
+  `validar_nome` (not in `avaliar_coluna`, which the catalog feeds with the size separately);
+  only 1–9 ASCII digits count as a size.
+- **Front.** `web/src/hooks/queries/nomenclatura.ts` (types, mappers, `useNomenclatura`,
+  `useValidarNome`), `pages/nomenclatura.tsx` + `components/validador-nome.tsx`,
+  `components/selo-conformidade.tsx`; the catalog pages show cards, a badge per column and a
+  "só não conformes" filter.
+- **Not built yet** (see `docs/superpowers/specs/2026-10-23-portal-consulta-nomenclatura-design.md`,
+  sections 3.3–3.4 and phases 3–5): global search with similarity and facet filters, the API for
+  the skill (reuse lookup, Bearer service token), and the audit log of consultations.
 
 ## Deployment
 
