@@ -1,3 +1,5 @@
+import pytest
+
 from app.features.nomenclatura.service import validar_nome
 
 
@@ -41,3 +43,26 @@ def test_entrada_estranha_nao_levanta():
         assert v.ambiguidade is None
         assert v.dominios_candidatos == ()
     assert validar_nome("").avaliacao.resultado == "fora"
+
+
+@pytest.mark.parametrize(
+    ("nome", "opcoes"),
+    [
+        ("NUMERO_NOTA", ("NR", "CD")),
+        ("número_nota", ("NR", "CD")),
+        ("NOME_CLIENTE", ("NM", "DS")),
+        ("descrição curta x", ("NM", "DS")),
+        ("MARGEM_LUCRO", ("VL", "PC")),
+        ("TAXA_JURO", ("VL", "PC")),
+        ("INDICE_X", ("VL", "PC")),
+    ],
+)
+def test_ambiguidade_por_termo(nome, opcoes):
+    v = validar_nome(nome)
+    assert v.ambiguidade is not None
+    assert v.ambiguidade.opcoes == opcoes
+
+
+@pytest.mark.parametrize("nome", ["DESCRICAO_X", "COD_X", "NUM_X"])
+def test_sem_ambiguidade(nome):
+    assert validar_nome(nome).ambiguidade is None

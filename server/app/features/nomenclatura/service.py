@@ -23,6 +23,15 @@ def _normalizar_nome(nome: str | None) -> str:
     return _ESPACOS.sub("_", normalizar_termo(nome or ""))
 
 
+def _abre_com_termo(normalizado: str, ambiguidade: Ambiguidade) -> bool:
+    """O nome é o termo ou começa por ele (termos de várias palavras incluídos)."""
+    for termo in ambiguidade.termos:
+        t = _normalizar_nome(termo)
+        if normalizado == t or normalizado.startswith(t + "_"):
+            return True
+    return False
+
+
 def validar_nome(
     nome: str, tipo: str | None = None, tamanho: int | None = None
 ) -> Validacao:
@@ -31,7 +40,9 @@ def validar_nome(
     avaliacao = avaliar_coluna(normalizado, tipo, tamanho)
     prefixo = normalizado.partition("_")[0]
 
-    ambiguidade = next((a for a in regras.ambiguidades if prefixo in a.termos), None)
+    ambiguidade = next(
+        (a for a in regras.ambiguidades if _abre_com_termo(normalizado, a)), None
+    )
 
     candidatos: tuple[str, ...] = ()
     # Só pergunta o domínio quando o nome já está válido e o tipo não foi dado.
