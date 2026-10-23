@@ -9,6 +9,7 @@ from app.db.catalog_db import CatalogPermissionError, query
 from app.features.catalog.cache import ttl_cache
 from app.features.catalog.dialect import get_dialect
 from app.features.catalog.inference import (
+    infer_camada,
     infer_classificacao,
     infer_completude,
     infer_prefix_domain,
@@ -18,11 +19,21 @@ from app.features.catalog.inference import (
 from app.features.catalog.schemas import (
     ColumnOut,
     ColumnSearchOut,
+    ConformidadeOut,
+    DocumentacaoOut,
     SaudeOut,
     TableDetailOut,
     TableOut,
     TableSaudeOut,
 )
+from app.features.nomenclatura.conformidade import (
+    Avaliacao,
+    Resumo,
+    avaliar_coluna,
+    resumir,
+    resumo_nao_aplicavel,
+)
+from app.features.nomenclatura.schemas import AvaliacaoOut, SugestaoOut
 
 _IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9_]+$")
 _TEXT_TYPE_RE = re.compile(r"CHAR|CLOB|GRAPHIC|TEXT", re.IGNORECASE)
@@ -163,6 +174,61 @@ async def get_table_saude(schema_name: str, table: str) -> TableSaudeOut:
     )
 
 
+def _avaliacao_out(avaliacao: Avaliacao) -> AvaliacaoOut:
+    sugestao = avaliacao.sugestao
+    return AvaliacaoOut(
+        resultado=avaliacao.resultado,
+        problemas=list(avaliacao.problemas),
+        sugestao=(
+            SugestaoOut(
+                nome=sugestao.nome,
+                dominio=sugestao.dominio,
+                tipo=sugestao.tipo,
+                nulo=sugestao.nulo,
+            )
+            if sugestao
+            else None
+        ),
+    )
+
+
+def _conformidade_out(resumo: Resumo) -> ConformidadeOut:
+    return ConformidadeOut(
+        aplicavel=resumo.aplicavel,
+        conformes=resumo.conformes,
+        avisos=resumo.avisos,
+        fora=resumo.fora,
+        total=resumo.total,
+        percentual=resumo.percentual,
+    )
+
+
+def _avaliar_conformidade(
+    schema_name: str, columns: list[ColumnOut]
+) -> ConformidadeOut:
+    """Preenche `conformidade` de cada coluna de negócio e devolve o resumo da
+    tabela. Schema LEGADO não segue a convenção: nada é avaliado."""
+    if infer_camada(schema_name) == "LEGADO":
+        return _conformidade_out(resumo_nao_aplicavel())
+    avaliacoes: list[Avaliacao] = []
+    for column in columns:
+        if is_audit_column(column.name):
+            continue
+        avaliacao = avaliar_coluna(column.name, column.type, column.length)
+        column.conformidade = _avaliacao_out(avaliacao)
+        avaliacoes.append(avaliacao)
+    return _conformidade_out(resumir(avaliacoes))
+
+
+def _calcular_documentacao(columns: list[ColumnOut]) -> DocumentacaoOut:
+    negocio = [c for c in columns if not is_audit_column(c.name)]
+    documentadas = sum(1 for c in negocio if c.description and c.description.strip())
+    percentual = round_half_up(documentadas / len(negocio) * 100) if negocio else None
+    return DocumentacaoOut(
+        percentual=percentual, documentadas=documentadas, total=len(negocio)
+    )
+
+
 async def get_table_detail(schema_name: str, table: str) -> TableDetailOut:
     _validar_identificadores(schema_name, table)
     tables = await list_tables(schema_name)
@@ -173,6 +239,8 @@ async def get_table_detail(schema_name: str, table: str) -> TableDetailOut:
         )
 
     columns = await list_columns(schema_name, table)
+    conformidade = _avaliar_conformidade(schema_name, columns)
+    documentacao = _calcular_documentacao(columns)
     try:
         completude = await get_completude(schema_name, table, columns)
     except CatalogPermissionError:
@@ -184,6 +252,8 @@ async def get_table_detail(schema_name: str, table: str) -> TableDetailOut:
             total_registros=None,
             saude=None,
             leitura_negada=True,
+            conformidade=conformidade,
+            documentacao=documentacao,
             columns=columns,
         )
     for column in columns:
@@ -194,6 +264,8 @@ async def get_table_detail(schema_name: str, table: str) -> TableDetailOut:
         schema_name=schema_name,
         total_registros=completude.total_registros,
         saude=completude.saude,
+        conformidade=conformidade,
+        documentacao=documentacao,
         columns=columns,
     )
 

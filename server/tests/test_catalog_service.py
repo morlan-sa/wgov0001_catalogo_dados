@@ -8,6 +8,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import HTTPException
 
+from app.config import settings
+from app.db.catalog_db import CatalogPermissionError
 from app.features.catalog import service
 from app.features.catalog.schemas import ColumnOut
 
@@ -21,15 +23,20 @@ _TABLES = [
 ]
 
 
-def _col(name: str, type_: str = "BIGINT") -> ColumnOut:
+def _col(
+    name: str,
+    type_: str = "BIGINT",
+    length: int | None = 8,
+    description: str | None = None,
+) -> ColumnOut:
     return ColumnOut(
         name=name,
         type=type_,
-        length=8,
+        length=length,
         scale=0,
         nullable=True,
         order=1,
-        description=None,
+        description=description,
         is_primary_key=False,
         domain="x",
     )
@@ -211,6 +218,111 @@ class TestDetalheESaude:
                 await service.get_table_detail("CUR REF", "PAIS")
         assert exc.value.status_code == 400
         fake.assert_not_called()
+
+
+class TestConformidadeEDocumentacao:
+    @staticmethod
+    def _detalhe(columns: list[ColumnOut], completude=None):
+        if completude is None:
+            completude = service.Completude(total_registros=10)
+        return (
+            patch.object(
+                service, "list_tables", AsyncMock(return_value=[_table("PAIS")])
+            ),
+            patch.object(service, "list_columns", AsyncMock(return_value=columns)),
+            patch.object(service, "get_completude", AsyncMock(return_value=completude)),
+        )
+
+    async def test_detalhe_traz_conformidade_por_coluna_e_resumo(self, monkeypatch):
+        monkeypatch.setattr(settings, "CONFORMIDADE_PESO_AVISO", 0.5)
+        columns = [
+            _col("ID_PAIS"),  # conforme
+            _col("CD_PAIS", "VARCHAR", 3),  # aviso: tamanho difere de CD_VAR (20)
+            _col("XX_FOO", "VARCHAR", 3),  # fora: prefixo desconhecido
+            _col("DT_ATU_DADOS", "TIMESTAMP"),  # auditoria: fora da avaliação
+        ]
+        p1, p2, p3 = self._detalhe(columns)
+        with p1, p2, p3:
+            detail = await service.get_table_detail("CUR_REF", "PAIS")
+
+        by_name = {c.name: c for c in detail.columns}
+        assert by_name["ID_PAIS"].conformidade is not None
+        assert by_name["ID_PAIS"].conformidade.resultado == "conforme"
+        assert by_name["ID_PAIS"].conformidade.problemas == []
+        aviso = by_name["CD_PAIS"].conformidade
+        assert aviso is not None and aviso.resultado == "aviso"
+        assert aviso.sugestao is not None and aviso.sugestao.dominio == "CD_VAR"
+        assert by_name["XX_FOO"].conformidade is not None
+        assert by_name["XX_FOO"].conformidade.resultado == "fora"
+        assert by_name["DT_ATU_DADOS"].conformidade is None
+
+        c = detail.conformidade
+        assert c.aplicavel is True
+        assert (c.conformes, c.avisos, c.fora, c.total) == (1, 1, 1, 3)
+        assert c.percentual == 50  # (1 + 0.5 * 1) / 3 * 100
+
+    async def test_detalhe_legado_nao_aplicavel(self):
+        columns = [_col("ID_PAIS"), _col("XX_FOO", "VARCHAR", 3)]
+        p1, p2, p3 = self._detalhe(columns)
+        with p1, p2, p3:
+            detail = await service.get_table_detail("DB2INST1", "PAIS")
+
+        assert detail.conformidade.aplicavel is False
+        assert detail.conformidade.total == 0
+        assert detail.conformidade.percentual is None
+        assert all(c.conformidade is None for c in detail.columns)
+        # documentação independe da camada
+        assert detail.documentacao.total == 2
+
+    async def test_tabela_so_com_auditoria_nao_divide_por_zero(self):
+        columns = [
+            _col("DT_ATU_DADOS", "TIMESTAMP"),
+            _col("NM_ORIGEM_GRAVACAO", "VARCHAR"),
+        ]
+        p1, p2, p3 = self._detalhe(columns)
+        with p1, p2, p3:
+            detail = await service.get_table_detail("CUR_REF", "PAIS")
+
+        assert detail.conformidade.aplicavel is True
+        assert detail.conformidade.total == 0
+        assert detail.conformidade.percentual is None
+        assert detail.documentacao.total == 0
+        assert detail.documentacao.documentadas == 0
+        assert detail.documentacao.percentual is None
+
+    async def test_leitura_negada_mantem_conformidade(self):
+        columns = [
+            _col("ID_PAIS", description="Chave"),
+            _col("XX_FOO", "VARCHAR", 3),
+        ]
+        p1, p2, _ = self._detalhe(columns)
+        negado = AsyncMock(side_effect=CatalogPermissionError("sem SELECT"))
+        with p1, p2, patch.object(service, "get_completude", negado):
+            detail = await service.get_table_detail("CUR_REF", "PAIS")
+
+        assert detail.leitura_negada is True
+        assert detail.saude is None
+        assert (detail.conformidade.conformes, detail.conformidade.fora) == (1, 1)
+        assert detail.conformidade.percentual == 50
+        assert detail.columns[1].conformidade is not None
+        assert detail.columns[1].conformidade.resultado == "fora"
+        assert detail.documentacao.documentadas == 1
+        assert detail.documentacao.total == 2
+
+    async def test_documentacao_conta_so_colunas_de_negocio(self):
+        columns = [
+            _col("ID_PAIS", description="Chave do país"),
+            _col("CD_PAIS", "VARCHAR", 20, description="   "),  # só espaços
+            _col("DS_PAIS", "VARCHAR", 256, description=None),
+            _col("DT_ATU_DADOS", "TIMESTAMP", description="Auditoria documentada"),
+        ]
+        p1, p2, p3 = self._detalhe(columns)
+        with p1, p2, p3:
+            detail = await service.get_table_detail("CUR_REF", "PAIS")
+
+        d = detail.documentacao
+        assert (d.documentadas, d.total) == (1, 3)
+        assert d.percentual == 33
 
 
 class TestBuscaDeColunas:

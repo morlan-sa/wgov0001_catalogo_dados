@@ -13,6 +13,8 @@ from fastapi import HTTPException
 
 from app.features.catalog.schemas import (
     ColumnSearchOut,
+    ConformidadeOut,
+    DocumentacaoOut,
     SaudeOut,
     TableDetailOut,
     TableOut,
@@ -65,6 +67,10 @@ ROTAS = [
             schema_name="CUR_REF",
             total_registros=252,
             saude=SAUDE,
+            conformidade=ConformidadeOut(
+                aplicavel=True, conformes=0, avisos=0, fora=0, total=0, percentual=None
+            ),
+            documentacao=DocumentacaoOut(percentual=None, documentadas=0, total=0),
             columns=[],
         ),
     ),
